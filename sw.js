@@ -1,4 +1,4 @@
-const CACHE_NAME = 'super-kid-v5';
+const CACHE_NAME = 'super-kid-v6';
 const ASSETS = [
   './',
   './index.html',
@@ -14,7 +14,8 @@ const ASSETS = [
   './assets/jetpack.png',
   './assets/portal_orb.png',
   './assets/visor.png',
-  './assets/trio.png'
+  './assets/trio.png',
+  './assets/y2k_bg.png'
 ];
 
 // Cache all assets during install

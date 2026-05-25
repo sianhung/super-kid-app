@@ -369,7 +369,8 @@ body, html {
 .cosmic-backdrop {
     position: fixed;
     inset: 0;
-    background: linear-gradient(135deg, #1E88A8 0%, #4DC8E8 50%, #1A7BA0 100%);
+    background: #090f13 url('assets/y2k_bg.png') no-repeat center center;
+    background-size: cover;
     pointer-events: none;
     z-index: -2;
     overflow: hidden;
