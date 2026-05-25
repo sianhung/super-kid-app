@@ -47,7 +47,7 @@ body, html {
     width: 100%; height: 100%;
     overflow: hidden;
     font-family: var(--font-body);
-    background: var(--sb-sky);
+    background: #090f13; /* fallback only — wallpaper renders via .cosmic-backdrop */
     color: var(--sb-text-dark);
 }
 
@@ -113,8 +113,11 @@ body, html {
     height: 100%;
     display: grid;
     grid-template-rows: 70px 1fr;
-    background: var(--sb-sky);
+    background: transparent; /* let .cosmic-backdrop wallpaper show through */
+    position: relative;
+    z-index: 1;
 }
+
 
 /* =====================================================================
    TOP HEADER
@@ -372,7 +375,7 @@ body, html {
     background: #090f13 url('assets/y2k_bg.png') no-repeat center center;
     background-size: cover;
     pointer-events: none;
-    z-index: -2;
+    z-index: 0; /* raised so it's visible above transparent body/app-shell */
     overflow: hidden;
 }
 
