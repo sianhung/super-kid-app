@@ -1,60 +1,20 @@
-# Task Board - Admin Control Center Integration
+# Task Board - Super Kid PWA Premium Animations & UI Overhaul
 
-## Completed
-- [x] **Step 1: HTML Structure**
-  - Add Admin console navigation tab and `<section id="screen-admin">` inside `index.html` with content forms and submissions reviewer table.
-- [x] **Step 2: Admin Panel CSS Styling**
-  - Append custom styles to `styles.css` for forms grid, admin card, custom scifi inputs, selects, and subtab button active states.
-- [x] **Step 3: State Initialization & LocalStorage Persistence**
-  - Update `AppState` constructor in `app.js` to initialize episodes, quizzes, contests, and submissions from `localStorage` if they exist.
-  - Add persistence save methods to `AppState` (e.g., `saveEpisodes`, `saveQuizzes`, `saveContests`).
-- [x] **Step 4: Connect tab navigation & Admin Subtabs**
-  - Wire `tab-admin-btn` listener to `navigateTo('admin')`.
-  - Update `updateActiveTabs` to recognize the `admin` screen.
-  - Wire subtab click triggers (`admin-subtab-content-btn` and `admin-subtab-submissions-btn`) to toggle visibility between the Forms grid and Submissions ledger.
-- [x] **Step 5: Form Submissions & Dynamic Renderers**
-  - Implement `renderAdminQuizSelect()` to load select options in `#admin-quiz-ep-select` with current episode titles.
-  - Implement `admin-episode-form` submit handler (generates UUID, saves episode, triggers alerts, and updates dropdown and dashboard).
-  - Implement `admin-quiz-form` submit handler (appends question to correct quiz set or creates new quiz set for the episode, saves, alerts).
-  - Implement `admin-contest-form` submit handler (saves new contest, triggers alert, updates contests tab).
-  - Implement review ledger renderer `renderAdminSubmissions()` with "Approve" (increments coins, saves status, plays confetti) and "Reject" buttons.
-- [x] **Step 6: Admin Login System**
-  - [x] **6A: HTML Structures**: Create `#admin-login-deck` with inputs, password visibility toggle, error message balloon, and `#admin-logout-btn` inside `index.html`.
-  - [x] **6B: Auth CSS Styling**: Add cyber-glow aesthetics, layout centering, eye button alignment, incorrect animation shake, and custom error bubble styles to `styles.css`.
-  - [x] **6C: App Auth Controller**: Update `AppState` inside `app.js` with `isAdminLoggedIn`, write session save/load, build dynamic deck-renderer `renderAdminView()`, validate default credentials (`admin`/`admin123`), trigger success notifications, and wire `#admin-logout-btn`.
-- [x] **Step 7: Settings and Command Consolidation**
-  - [x] **7A: Consolidated Navigation Tab**: Replaced Upgrade (`tab-shop-btn`) and Admin (`tab-admin-btn`) header tabs with a unified Settings (`tab-settings-btn`) tab.
-  - [x] **7B: Settings Screen HTML**: Created `<section id="screen-settings">` displaying GIZMO'S UPGRADE SHOP and PARENT & TEACHER PORTAL cards with description and launch buttons.
-  - [x] **7C: Cyber-Settings CSS**: Added `.settings-grid`, `.settings-card` with floating icon keyframe animations, glowing border states, hover scales, and responsive landscape adjustments.
-  - [x] **7D: Back Button Architecture**: Added matching glowing blue Back buttons (`.back-settings-btn`) aligned inside flex row groups (`.header-band-left-group`) inside both the Shop and Admin header bands.
-  - [x] **7E: Settings Routing Controller**: Linked settings tab, card triggers, back buttons, and `updateActiveTabs()` highlights to manage active states in `app.js`.
-- [x] **Step 8: Content Management & Editing Subtab Integration**
-  - [x] **8A: Renderers**: Implement `renderAdminManageView()` to dynamically populate episodes and contests tables with Edit/Delete buttons.
-  - [x] **8B: Forms Interceptor**: Update form submit handlers to handle inline edits (updates) instead of insertions when an item is selected.
-  - [x] **8C: Double-Confirm Deletions**: Program triple confirmation safety hooks on episode and contest deletion before pruning records, re-indexing indexes, adjusting user progression boundaries, and refreshing dashboards.
-  - [x] **8D: Glowing Flash Animation**: Integrate a beautiful CSS form flashing animation to direct parent focus instantly when an item is clicked for editing.
-
-- [x] **Step 9: Custom Image Upload Integration**
-  - [x] **9A: Contest Selector Replacement (`index.html`)**: Update the HTML layout for the Contest upload form to feature the twin segmented tabs ("🔗 Image Link" and "📸 Upload Photo"), identical to the Episode form.
-  - [x] **9B: Sci-Fi Photo Upload Styles (`styles.css`)**: Add styling rules for `.thumbnail-picker-group`, `.picker-tabs`, `.picker-tab`, `.scifi-file-upload-wrap`, and `.upload-preview-container`.
-  - [x] **9C: FileReader State Handlers (`app.js`)**: Initialize custom image buffers, implement tab triggers, hook `FileReader` bindings, and wire uploader `❌` clear buttons.
-  - [x] **9D: Form Interceptors & Bidirectional Edit Hydration (`app.js`)**: Connect form submission pipelines to utilize Base64 inputs, reset states on submit/reset, and automatically switch tabs and restore previews when editing items.
-
-- [x] **Step 10: Dedicated Sci-Fi Edit Modal for Ledger Items**
-  - [x] **10A: Edit Modal HTML (`index.html`)**: Inject `#admin-edit-modal` overlay containing separate glowing form layouts for Episode and Contest updates, maintaining dedicated twin-picker image links & photo uploads.
-  - [x] **10B: Modal CSS Backdrop & Dark Overrides (`styles.css`)**: Style modal positioning, glassmorphic blurs, custom dark-mode sci-fi input designs, presets, and upload previews.
-  - [x] **10C: Modal Event Listeners & State Binding (`app.js`)**: Bind backdrop dismiss, close anchors, modal file readers, forms processing, state serialization updates, and victory effect sequences.
-- [x] **Step 11: High-Contrast Edit Tabs & CSS Token Restoration**
-  - [x] **11A: Root Token Restoration (`styles.css`)**: Defined the missing `--sb-text-light` variable in the `:root` block to fix invisible tab labels.
-  - [x] **11B: Glassmorphic Modal Contrast Overrides (`styles.css`)**: Implemented high-contrast, glowing typography styles for `.picker-tab` elements when shown inside the dark sci-fi modal background.
-  - [x] **11C: Walkthrough Updates (`walkthrough.md`)**: Fully updated the app's walkthrough documentation to capture the dedicated Edit Modal and visible dual-picker visibility.
-- [x] **Step 12: Progressive Web App (PWA) Upgrade & Git Initializer**
-  - [x] **12A: Web App Manifest (`manifest.json`)**: Formulated and linked the PWA specification document containing metadata, viewport orientations, and Gizmo mascot application icons.
-  - [x] **12B: Service Worker Implementation (`sw.js`)**: Structured an offline pre-caching script to store core static files, enabling rapid installation prompts and offline compatibility.
-  - [x] **12C: Mobile Capability Head Tags (`index.html`)**: Added Apple mobile-web-app configuration meta elements and apple-touch-icon directives.
-  - [x] **12D: Project Documentation (`README.md` & `.gitignore`)**: Compiled a developer guidelines file outlining local running, Admin secrets, mobile Safari/Chrome installation guides, and free Pages deployment steps, alongside exclusionary version rules.
-  - [x] **12E: Local Git Repository Commit**: Successfully ran repo initializations, indexed all assets, and recorded the initial repository tree commit.
-- [x] **Step 13: Automatic Surge Deployment & GitHub Pushes**
-  - [x] **13A: GitHub Remote Push**: Pushed all code successfully to the user's GitHub public repository `sianhung/super-kid-app`.
-  - [x] **13B: Automated Surge Deployment**: Configured and executed a Node-based interactive deployment script to log in automatically to Surge as `sianhung-superkid@surge.sh` and publish the site.
-  - [x] **13C: Live PWA Verification**: Confirmed that the site is fully hosted and accessible at `https://sianhung-superkid.surge.sh` with seamless offline service worker caching and W3C manifest installation ready.
+## Active Tasks
+- `[x]` **Step 1: Setup Workspace & Integrate GSAP**
+  - Link GSAP CDN core library in `index.html`
+  - Add cosmic cyber-grid scanline overlays and particle backdrop markup
+- `[x]` **Step 2: Smooth Screen Slide transitions (`app.js` & `styles.css`)**
+  - Upgrade `navigateTo()` to animate screen swapping with elastic GSAP transitions
+  - Build staggered entry animations for active screen cards and list elements
+- `[x]` **Step 3: Horizontal Carousel Episode Guide (`index.html`, `styles.css`, `app.js`)**
+  - Convert dashboard listing container into a fluid horizontal-scrolling card track
+  - Add left/right floating arrow buttons and touch progress scrollbar
+  - Add 3D card perspective tilt animations and visual glowing locks
+- `[x]` **Step 4: Star Coin Burst Physics (`app.js` & `styles.css`)**
+  - Build a custom canvas particle system to burst stars (`⭐`) under the user's cursor
+  - Program bezier-curve trajectory paths tracking directly into the header points bar coordinates
+  - Program scaling spring-bounce reactions on the coins box when star particles land
+- `[x]` **Step 5: E2E Verification & Live Surge Deployment**
+  - Run automated Puppeteer browser assertions in landscape formats
+  - Push the updated PWA code live to `https://sianhung-superkid.surge.sh`
