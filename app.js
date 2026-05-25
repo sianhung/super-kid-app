@@ -665,8 +665,15 @@ function loadYoutubeAPI() {
     ytApiLoaded = true;
 }
 
+let ytPlayerPendingEpisode = null;
+
 window.onYouTubeIframeAPIReady = function() {
     console.log("YouTube Iframe API Loaded and Ready!");
+    if (ytPlayerPendingEpisode) {
+        console.log("Loading queued episode after API ready:", ytPlayerPendingEpisode.title);
+        createYoutubePlayer(ytPlayerPendingEpisode);
+        ytPlayerPendingEpisode = null;
+    }
 };
 
 function startEpisode(episode) {
@@ -683,6 +690,18 @@ function startEpisode(episode) {
     fillBar.style.width = '0%';
     timeLabel.textContent = '0:00';
     
+    cleanupYoutubePolling();
+
+    // Verify if YouTube API is fully loaded and ready
+    if (window.YT && window.YT.Player) {
+        createYoutubePlayer(episode);
+    } else {
+        console.log("YouTube API not ready yet. Queuing episode:", episode.title);
+        ytPlayerPendingEpisode = episode;
+    }
+}
+
+function createYoutubePlayer(episode) {
     // Clean and destroy old player
     if (ytPlayer) {
         try {
@@ -691,9 +710,24 @@ function startEpisode(episode) {
         ytPlayer = null;
     }
     
-    cleanupYoutubePolling();
+    // Recreate placeholder div to prevent DOM replacement issues
+    const wrapper = document.querySelector('.video-player-wrapper');
+    if (wrapper) {
+        const oldPlayerDiv = document.getElementById('youtube-player');
+        if (oldPlayerDiv) {
+            oldPlayerDiv.remove();
+        }
+        const newPlayerDiv = document.createElement('div');
+        newPlayerDiv.id = 'youtube-player';
+        const blocker = wrapper.querySelector('.timeline-interaction-blocker');
+        if (blocker) {
+            wrapper.insertBefore(newPlayerDiv, blocker);
+        } else {
+            wrapper.appendChild(newPlayerDiv);
+        }
+    }
     
-    // Instantiate YouTube player inside #youtube-player div
+    // Instantiate YouTube player inside the recreated div
     ytPlayer = new YT.Player('youtube-player', {
         height: '100%',
         width: '100%',
