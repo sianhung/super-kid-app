@@ -1,4 +1,4 @@
-const CACHE_NAME = 'super-kid-v1';
+const CACHE_NAME = 'super-kid-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -13,11 +13,13 @@ const ASSETS = [
   './assets/hat.png',
   './assets/jetpack.png',
   './assets/portal_orb.png',
-  './assets/visor.png'
+  './assets/visor.png',
+  './assets/trio.png'
 ];
 
 // Cache all assets during install
 self.addEventListener('install', (e) => {
+  self.skipWaiting(); // Force active immediately
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[Service Worker] Caching application shell assets...');
@@ -38,7 +40,7 @@ self.addEventListener('activate', (e) => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim()) // Claim active clients immediately
   );
 });
 
