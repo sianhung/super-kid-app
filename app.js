@@ -731,7 +731,7 @@ function startEpisode(episode) {
     });
 }
 
-playPauseBtn.addEventListener('click', () => {
+function togglePlayPause() {
     if (!ytPlayer) return;
     try {
         const playerState = ytPlayer.getPlayerState();
@@ -743,7 +743,15 @@ playPauseBtn.addEventListener('click', () => {
             playPauseBtn.textContent = '⏸️';
         }
     } catch(e) {}
-});
+}
+
+playPauseBtn.addEventListener('click', togglePlayPause);
+
+// Add tap/click listener to the giant video interaction blocker to toggle play/pause natively
+const interactionBlocker = document.querySelector('.timeline-interaction-blocker');
+if (interactionBlocker) {
+    interactionBlocker.addEventListener('click', togglePlayPause);
+}
 
 function startYoutubePolling() {
     cleanupYoutubePolling();
@@ -1631,12 +1639,19 @@ function extractYoutubeVideoId(inputStr) {
     if (!inputStr) return '';
     inputStr = inputStr.trim();
     
-    // Regular expression to handle different YouTube URL formats
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
+    // Regular expression to handle different YouTube URL formats including live streams and shorts
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/|live\/)([^#\&\?]*).*/;
     const match = inputStr.match(regExp);
     
     if (match && match[2].length === 11) {
         return match[2];
+    }
+    
+    // Alternative parser for any 11-character alphanumeric block after standard YouTube path dividers
+    const altRegExp = /(?:v=|\/|embed\/|shorts\/|live\/)([a-zA-Z0-9_-]{11})(?:\?|&|$)/;
+    const altMatch = inputStr.match(altRegExp);
+    if (altMatch) {
+        return altMatch[1];
     }
     
     // Fallback: If it's 11 characters and looks like an ID, return it as-is
