@@ -212,17 +212,66 @@ class AppState {
 
     // RPC Simulation: Increment Coins
     incrementCoins(amount) {
+        const startCoins = this.user.star_coins;
         this.user.star_coins += amount;
         this.saveUser();
         
-        // Trigger UI counter refresh & visual pop
         const box = document.getElementById('star-coin-counter-box');
         const label = document.getElementById('star-coin-label');
-        if (label) label.textContent = this.user.star_coins;
+        
+        let targetX = window.innerWidth - 80;
+        let targetY = 30;
+        
         if (box) {
-            box.classList.remove('bounce');
-            void box.offsetWidth; // Force CSS reflow
-            box.classList.add('bounce');
+            const rect = box.getBoundingClientRect();
+            targetX = rect.left + rect.width / 2;
+            targetY = rect.top + rect.height / 2;
+        }
+        
+        // Spawn 12 gorgeous flying star coins
+        const particleCount = 12;
+        let coinsLanded = 0;
+        
+        for (let i = 0; i < particleCount; i++) {
+            // Slight delay for each coin to create a beautiful flying trail effect
+            setTimeout(() => {
+                particles.push(new FlyingCoin(
+                    lastClickX + (Math.random() - 0.5) * 30,
+                    lastClickY + (Math.random() - 0.5) * 30,
+                    targetX,
+                    targetY,
+                    () => {
+                        coinsLanded++;
+                        
+                        // Increment score label incrementally!
+                        const stepCoins = Math.round(startCoins + (amount * (coinsLanded / particleCount)));
+                        if (label) label.textContent = stepCoins;
+                        
+                        // Trigger haptic spring bounce scale on points box
+                        if (box) {
+                            gsap.killTweensOf(box);
+                            gsap.fromTo(box, 
+                                { scale: 1 }, 
+                                { scale: 1.25, duration: 0.1, ease: "power1.out", onComplete: () => {
+                                    gsap.to(box, { scale: 1, duration: 0.25, ease: "elastic.out(1.2, 0.4)" });
+                                }}
+                            );
+                        }
+                        
+                        // Spawn tiny splash particle pop at points box coordinate
+                        for (let j = 0; j < 3; j++) {
+                            particles.push(new Particle(
+                                targetX + (Math.random() - 0.5) * 15,
+                                targetY + (Math.random() - 0.5) * 15,
+                                '#FFD000',
+                                'star'
+                            ));
+                        }
+                        startAnimationLoop();
+                    }
+                ));
+                startAnimationLoop();
+            }, i * 75); // Stagger coin launches by 75ms
         }
     }
 
@@ -258,6 +307,14 @@ const canvas = document.getElementById('fx-canvas');
 const ctx = canvas.getContext('2d');
 let particles = [];
 let animFrameId = null;
+
+let lastClickX = window.innerWidth / 2;
+let lastClickY = window.innerHeight / 2;
+
+window.addEventListener('click', (e) => {
+    lastClickX = e.clientX;
+    lastClickY = e.clientY;
+});
 
 function resizeCanvas() {
     canvas.width = window.innerWidth;
@@ -354,6 +411,83 @@ class Confetti {
     }
 }
 
+class FlyingCoin {
+    constructor(startX, startY, targetX, targetY, callback) {
+        this.startX = startX;
+        this.startY = startY;
+        this.targetX = targetX;
+        this.targetY = targetY;
+        this.callback = callback;
+        
+        this.x = startX;
+        this.y = startY;
+        
+        // Control point for a beautiful curved path arching upward
+        const dx = targetX - startX;
+        this.cpX = startX + dx * 0.3 + (Math.random() - 0.5) * 80;
+        this.cpY = Math.min(startY, targetY) - 160 - Math.random() * 80;
+        
+        this.t = 0; // Curve progress from 0 to 1
+        this.speed = Math.random() * 0.015 + 0.02; // Smooth travel speed
+        
+        this.radius = Math.random() * 6 + 10;
+        this.rotation = Math.random() * Math.PI * 2;
+        this.rotSpeed = (Math.random() - 0.5) * 0.15;
+        this.alpha = 1;
+        this.color = '#FFD000'; // Superbook gold yellow
+    }
+
+    update() {
+        this.t += this.speed;
+        if (this.t >= 1) {
+            this.t = 1;
+            this.alpha = 0;
+            if (this.callback) {
+                this.callback();
+            }
+        }
+        
+        // Quad Bezier curve equation
+        const mt = 1 - this.t;
+        this.x = mt * mt * this.startX + 2 * mt * this.t * this.cpX + this.t * this.t * this.targetX;
+        this.y = mt * mt * this.startY + 2 * mt * this.t * this.cpY + this.t * this.t * this.targetY;
+        
+        this.rotation += this.rotSpeed;
+    }
+
+    draw() {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.rotation);
+        
+        // Gold star coin vector draw
+        ctx.fillStyle = this.color;
+        ctx.strokeStyle = '#E8B800'; // Darker gold border
+        ctx.lineWidth = 2.5;
+        
+        ctx.beginPath();
+        for (let i = 0; i < 5; i++) {
+            ctx.lineTo(Math.cos((18 + i * 72) * Math.PI / 180) * this.radius,
+                       Math.sin((18 + i * 72) * Math.PI / 180) * this.radius);
+            ctx.lineTo(Math.cos((54 + i * 72) * Math.PI / 180) * (this.radius / 2),
+                       Math.sin((54 + i * 72) * Math.PI / 180) * (this.radius / 2));
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // Draw inner glowing ring
+        ctx.beginPath();
+        ctx.arc(0, 0, this.radius * 0.4, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        ctx.restore();
+    }
+}
+
 // Particle Loop Animation
 function startAnimationLoop() {
     if (animFrameId) return;
@@ -433,18 +567,162 @@ function updateActiveTabs(screenId) {
 }
 
 // --- 4. NAVIGATION & SCREEN MANAGER (Router) ---
+// --- 4. NAVIGATION & SCREEN MANAGER (Router) ---
+let currentActiveScreen = 'dashboard';
+
+const screenOrder = {
+    'dashboard': 0,
+    'video': 0.5,
+    'quizzes': 1,
+    'quiz': 1.5,
+    'contests': 2,
+    'settings': 3,
+    'shop': 3.5,
+    'admin': 3.8
+};
+
+function triggerInteriorAnimations(screenId) {
+    if (screenId === 'dashboard') {
+        gsap.fromTo('.episode-banner-card', 
+            { y: 55, opacity: 0, rotateY: 15 }, 
+            { y: 0, opacity: 1, rotateY: 0, duration: 0.6, stagger: 0.08, ease: "back.out(1.2)", onComplete: () => {
+                applyCardTilts();
+                setupCarouselControls();
+            }}
+        );
+    } else if (screenId === 'quizzes') {
+        gsap.fromTo('.quiz-select-card', 
+            { y: 50, opacity: 0, scale: 0.9 }, 
+            { y: 0, opacity: 1, scale: 1, duration: 0.5, stagger: 0.06, ease: "power2.out" }
+        );
+    } else if (screenId === 'shop') {
+        gsap.fromTo('.prize-card', 
+            { y: 50, opacity: 0, scale: 0.9 }, 
+            { y: 0, opacity: 1, scale: 1, duration: 0.5, stagger: 0.06, ease: "power2.out" }
+        );
+    } else if (screenId === 'contests') {
+        gsap.fromTo('.contest-card', 
+            { x: -50, opacity: 0 }, 
+            { x: 0, opacity: 1, duration: 0.5, stagger: 0.08, ease: "power2.out" }
+        );
+    }
+}
+
+function setupCarouselControls() {
+    const leftBtn = document.getElementById('carousel-prev-btn');
+    const rightBtn = document.getElementById('carousel-next-btn');
+    const container = document.getElementById('episodes-cards-container');
+    
+    if (leftBtn && rightBtn && container) {
+        const newLeftBtn = leftBtn.cloneNode(true);
+        const newRightBtn = rightBtn.cloneNode(true);
+        leftBtn.parentNode.replaceChild(newLeftBtn, leftBtn);
+        rightBtn.parentNode.replaceChild(newRightBtn, rightBtn);
+        
+        newLeftBtn.addEventListener('click', () => {
+            container.scrollBy({ left: -340, behavior: 'smooth' });
+            triggerBubblePopFX(window.innerWidth / 4, window.innerHeight / 2);
+        });
+        
+        newRightBtn.addEventListener('click', () => {
+            container.scrollBy({ left: 340, behavior: 'smooth' });
+            triggerBubblePopFX(window.innerWidth * 3 / 4, window.innerHeight / 2);
+        });
+        
+        function updateArrows() {
+            const scrollLeft = container.scrollLeft;
+            const maxScrollLeft = container.scrollWidth - container.clientWidth;
+            
+            newLeftBtn.style.opacity = scrollLeft <= 15 ? '0' : '1';
+            newLeftBtn.style.pointerEvents = scrollLeft <= 15 ? 'none' : 'all';
+            
+            newRightBtn.style.opacity = scrollLeft >= maxScrollLeft - 15 ? '0' : '1';
+            newRightBtn.style.pointerEvents = scrollLeft >= maxScrollLeft - 15 ? 'none' : 'all';
+        }
+        
+        container.addEventListener('scroll', updateArrows);
+        setTimeout(updateArrows, 150);
+    }
+}
+
+function applyCardTilts() {
+    document.querySelectorAll('.episode-banner-card:not(.locked)').forEach(card => {
+        const orderIdx = parseInt(card.querySelector('.episode-number-label').textContent.replace('EPISODE ', ''));
+        const episode = state.episodes.find(ep => ep.order_index === orderIdx);
+        
+        if (episode) {
+            const playBtn = card.querySelector('.play-btn-trigger');
+            if (playBtn) {
+                const newPlayBtn = playBtn.cloneNode(true);
+                playBtn.parentNode.replaceChild(newPlayBtn, playBtn);
+                newPlayBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    watchEpisode(episode.id);
+                });
+            }
+            const discBtn = card.querySelector('.discover-btn-trigger');
+            if (discBtn) {
+                const newDiscBtn = discBtn.cloneNode(true);
+                discBtn.parentNode.replaceChild(newDiscBtn, discBtn);
+                newDiscBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    alert(`📖 DISCOVERING: ${episode.title}\n\nSuperbook Adventure Study Guide content has been synced for classroom review!`);
+                });
+            }
+            
+            card.onclick = () => {
+                watchEpisode(episode.id);
+            };
+        }
+        
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const xc = rect.width / 2;
+            const yc = rect.height / 2;
+            const tiltX = -(y - yc) / (rect.height / 8);
+            const tiltY = (x - xc) / (rect.width / 8);
+            
+            gsap.to(card, {
+                rotateX: tiltX,
+                rotateY: tiltY,
+                translateY: -10,
+                scale: 1.03,
+                duration: 0.15,
+                ease: "power1.out",
+                transformPerspective: 1000
+            });
+        });
+        
+        card.addEventListener('mouseleave', () => {
+            gsap.to(card, {
+                rotateX: 0,
+                rotateY: 0,
+                translateY: 0,
+                scale: 1,
+                duration: 0.35,
+                ease: "power2.out"
+            });
+        });
+    });
+}
+
 function navigateTo(screenId) {
+    const prevScreenId = currentActiveScreen;
+    if (prevScreenId === screenId && document.getElementById(`screen-${screenId}`).classList.contains('active')) return;
+    
+    currentActiveScreen = screenId;
     state.currentScreen = screenId;
     
-    // Deactivate all screens
-    document.querySelectorAll('.app-screen').forEach(screen => {
-        screen.classList.remove('active');
-    });
+    const prevPos = screenOrder[prevScreenId] !== undefined ? screenOrder[prevScreenId] : 0;
+    const targetPos = screenOrder[screenId] !== undefined ? screenOrder[screenId] : 0;
+    const slideDirection = targetPos > prevPos ? 1 : -1;
     
-    // Activate target screen
-    const target = document.getElementById(`screen-${screenId}`);
-    if (target) target.classList.add('active');
-
+    const outgoing = document.getElementById(`screen-${prevScreenId}`);
+    const incoming = document.getElementById(`screen-${screenId}`);
+    
     // If leaving video deck, pause YouTube player and stop interval
     if (screenId !== 'video' && ytPlayer) {
         try {
@@ -467,6 +745,45 @@ function navigateTo(screenId) {
     }
 
     updateActiveTabs(screenId);
+
+    if (outgoing && incoming && prevScreenId !== screenId) {
+        incoming.style.display = 'flex';
+        incoming.style.pointerEvents = 'none';
+        
+        const startX = slideDirection * window.innerWidth;
+        const endX = -slideDirection * window.innerWidth;
+        
+        gsap.killTweensOf([outgoing, incoming]);
+        
+        gsap.fromTo(outgoing, 
+            { x: 0, opacity: 1, scale: 1 }, 
+            { x: endX, opacity: 0, scale: 0.95, duration: 0.55, ease: "power2.inOut", onComplete: () => {
+                outgoing.classList.remove('active');
+                outgoing.style.display = 'none';
+            }}
+        );
+        
+        gsap.fromTo(incoming, 
+            { x: startX, opacity: 0, scale: 0.95 }, 
+            { x: 0, opacity: 1, scale: 1, duration: 0.55, ease: "power2.inOut", onComplete: () => {
+                incoming.classList.add('active');
+                incoming.style.pointerEvents = 'all';
+                triggerInteriorAnimations(screenId);
+            }}
+        );
+    } else if (incoming) {
+        document.querySelectorAll('.app-screen').forEach(s => {
+            if (s !== incoming) {
+                s.classList.remove('active');
+                s.style.display = 'none';
+            }
+        });
+        incoming.style.display = 'flex';
+        incoming.classList.add('active');
+        incoming.style.pointerEvents = 'all';
+        gsap.set(incoming, { x: 0, opacity: 1, scale: 1 });
+        triggerInteriorAnimations(screenId);
+    }
 }
 
 // Connect navigation event listeners

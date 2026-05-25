@@ -330,23 +330,15 @@ body, html {
     inset: 0;
     opacity: 0;
     pointer-events: none;
-    transform: scale(0.97) translateY(8px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
     overflow-y: auto;
-    display: flex;
+    display: none; /* Controlled dynamically by GSAP */
     flex-direction: column;
 }
 
-.app-screen::-webkit-scrollbar { width: 5px; }
-.app-screen::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.3);
-    border-radius: 10px;
-}
-
 .app-screen.active {
+    display: flex;
     opacity: 1;
     pointer-events: all;
-    transform: scale(1) translateY(0);
 }
 
 /* =====================================================================
@@ -373,91 +365,187 @@ body, html {
 /* =====================================================================
    SCREEN A: EPISODE GUIDE (Superbook layout)
    ===================================================================== */
-.episodes-list-container {
-    padding: 16px 20px 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    flex-grow: 1;
+/* Cosmic Space Backdrop */
+.cosmic-backdrop {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #1E88A8 0%, #4DC8E8 50%, #1A7BA0 100%);
+    pointer-events: none;
+    z-index: -2;
+    overflow: hidden;
 }
 
-/* Horizontal Episode Card — Superbook style */
+.cosmic-backdrop::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+        radial-gradient(circle at 15% 25%, rgba(255,255,255,0.15) 0%, transparent 45%),
+        radial-gradient(circle at 85% 75%, rgba(255,255,255,0.18) 0%, transparent 45%);
+    animation: pulseGlow 12s ease-in-out infinite alternate;
+}
+
+.cosmic-backdrop::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.04) 50%), linear-gradient(90deg, rgba(255, 255, 255, 0.01), rgba(0, 0, 0, 0.02), rgba(255, 255, 255, 0.01));
+    background-size: 100% 4px, 6px 100%;
+    opacity: 0.5;
+}
+
+@keyframes pulseGlow {
+    0% { transform: scale(1); opacity: 0.75; }
+    100% { transform: scale(1.08); opacity: 0.95; }
+}
+
+/* Screen Area Overrides */
+.screen-area {
+    background: transparent !important;
+}
+.app-screen {
+    background: transparent !important;
+}
+
+/* =====================================================================
+   SCREEN A: EPISODE GUIDE CAROUSEL (Netflix/Console Style)
+   ===================================================================== */
+.episodes-list-container {
+    padding: 24px 48px;
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 28px;
+    align-items: center;
+    flex-grow: 1;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    perspective: 1200px; /* Activates gorgeous 3D perspective rotation! */
+}
+
+/* Hide scrollbar default styles & create micro-track scrollbar */
+.episodes-list-container::-webkit-scrollbar {
+    height: 10px;
+}
+.episodes-list-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+}
+.episodes-list-container::-webkit-scrollbar-thumb {
+    background: var(--sb-yellow);
+    border: 2px solid var(--sb-sky-dark);
+    border-radius: 10px;
+}
+
+/* Vertical Episode Card */
 .episode-banner-card {
-    display: grid;
-    grid-template-columns: 240px 1fr 220px;
+    display: flex;
+    flex-direction: column;
+    width: 310px;
+    height: 390px;
     background: var(--sb-white);
     border-radius: var(--radius-card);
-    box-shadow: var(--sb-shadow-lg);
+    box-shadow: 0 8px 24px rgba(0,80,140,0.2);
     overflow: hidden;
-    border: 2px solid rgba(77,200,232,0.3);
-    transition: var(--transition);
+    border: 3.5px solid rgba(255,255,255,0.7);
+    transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.25s ease, border-color 0.25s ease;
     cursor: pointer;
-    min-height: 130px;
+    flex-shrink: 0;
+    position: relative;
+    transform-style: preserve-3d;
 }
 
 .episode-banner-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 40px rgba(0,80,140,0.3);
-    border-color: var(--sb-sky);
+    transform: translateY(-8px) scale(1.03);
+    box-shadow: 0 20px 45px rgba(0,80,140,0.35);
+    border-color: var(--sb-yellow);
 }
 
 .episode-banner-card.locked {
     cursor: not-allowed;
-    filter: grayscale(0.4);
+    filter: grayscale(0.5) contrast(0.85);
 }
 
 .episode-banner-card.locked:hover {
     transform: none;
-    box-shadow: var(--sb-shadow-lg);
+    box-shadow: 0 8px 24px rgba(0,80,140,0.2);
+    border-color: rgba(255,255,255,0.7);
 }
 
-/* Left orb section */
-.episode-orb-section {
-    background: linear-gradient(135deg, var(--sb-sky-dark) 0%, #1A7BA0 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* Top Thumbnail Section */
+.episode-thumb-section {
+    height: 155px;
+    width: 100%;
     position: relative;
     overflow: hidden;
-    padding: 8px;
+    flex-shrink: 0;
+    background: #000;
 }
 
-.episode-orb-section::before {
-    content: '';
+.episode-thumb-section img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.episode-banner-card:hover:not(.locked) .episode-thumb-section img {
+    transform: scale(1.08);
+}
+
+/* Locked Overlay */
+.locked-overlay-banner {
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 50% 60%, rgba(0,200,255,0.3) 0%, transparent 70%);
-}
-
-.episode-orb-img {
-    width: 130px;
-    height: 110px;
-    object-fit: contain;
-    position: relative;
-    z-index: 2;
-    filter: drop-shadow(0 0 10px rgba(0,240,255,0.8));
-    animation: orbFloat 4s ease-in-out infinite;
-}
-
-@keyframes orbFloat {
-    0%, 100% { transform: translateY(0px); }
-    50%       { transform: translateY(-6px); }
-}
-
-/* Middle info section */
-.episode-info-section {
-    padding: 16px 20px;
+    background: rgba(26,41,64,0.72);
     display: flex;
     flex-direction: column;
+    align-items: center;
     justify-content: center;
-    gap: 8px;
-    background: linear-gradient(135deg, #EBF8FF 0%, #FFFFFF 100%);
-    border-left: 4px solid var(--sb-sky);
+    gap: 6px;
+    backdrop-filter: blur(3px);
+}
+
+.lock-badge-big {
+    font-size: 2.2rem;
+    filter: drop-shadow(0 0 10px rgba(232,48,58,0.85));
+    animation: lockPulse 2s ease-in-out infinite;
+}
+
+@keyframes lockPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+}
+
+.lock-text-badge {
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--sb-white);
+    letter-spacing: 1px;
+    background: var(--sb-red);
+    padding: 3px 12px;
+    border-radius: var(--radius-pill);
+    box-shadow: 0 3px 0 var(--sb-red-dark);
+}
+
+/* Middle Content Info Section */
+.episode-info-section {
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 5px;
+    background: linear-gradient(135deg, #F5FBFF 0%, #FFFFFF 100%);
+    flex-grow: 1;
+    border-left: none;
+    border-bottom: 4px solid var(--sb-sky-light);
 }
 
 .episode-number-label {
-    font-size: 0.75rem;
-    font-weight: 700;
+    font-size: 0.72rem;
+    font-weight: 800;
     color: var(--sb-sky-dark);
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -465,131 +553,108 @@ body, html {
 
 .episode-banner-title {
     font-family: var(--font-heading);
-    font-size: 1.15rem;
+    font-size: 1.05rem;
     font-weight: 700;
     color: #FF8C00;
-    line-height: 1.2;
-    letter-spacing: 0.5px;
+    line-height: 1.25;
+    letter-spacing: 0.3px;
     text-transform: uppercase;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .episode-banner-desc {
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     color: var(--sb-text-muted);
-    line-height: 1.4;
-    margin-top: 2px;
+    line-height: 1.35;
+    margin-top: 1px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .episode-btn-row {
     display: flex;
     gap: 8px;
-    margin-top: 6px;
-    flex-wrap: wrap;
+    margin-top: auto;
+    padding-top: 4px;
 }
 
-/* Superbook-style buttons */
-.sb-btn {
-    font-family: var(--font-heading);
-    font-weight: 700;
-    font-size: 0.78rem;
-    padding: 7px 16px;
-    border-radius: var(--radius-btn);
-    border: none;
-    cursor: pointer;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    transition: var(--transition);
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    white-space: nowrap;
-}
-
-.sb-btn-red {
-    background: var(--sb-red);
-    color: var(--sb-white);
-    box-shadow: 0 3px 0 var(--sb-red-dark), 0 5px 12px rgba(232,48,58,0.3);
-}
-
-.sb-btn-red:hover:not(:disabled) {
-    background: #FF3F4A;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 0 var(--sb-red-dark), 0 8px 18px rgba(232,48,58,0.4);
-}
-
-.sb-btn-red:active:not(:disabled) {
-    transform: translateY(2px);
-    box-shadow: 0 1px 0 var(--sb-red-dark);
-}
-
-.sb-btn-blue {
-    background: var(--sb-blue-btn);
-    color: var(--sb-white);
-    box-shadow: 0 3px 0 var(--sb-blue-dark), 0 5px 12px rgba(45,108,180,0.3);
-}
-
-.sb-btn-blue:hover:not(:disabled) {
-    background: #3A7EC8;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 0 var(--sb-blue-dark), 0 8px 18px rgba(45,108,180,0.4);
-}
-
-.sb-btn-blue:active:not(:disabled) {
-    transform: translateY(2px);
-    box-shadow: 0 1px 0 var(--sb-blue-dark);
-}
-
-.sb-btn:disabled {
-    background: #CBD5E0 !important;
-    color: #718096 !important;
-    box-shadow: 0 2px 0 #A0ADB6 !important;
-    cursor: not-allowed;
-    transform: none !important;
-}
-
-/* Right thumbnail section */
-.episode-thumb-section {
-    overflow: hidden;
-    position: relative;
-}
-
-.episode-thumb-section img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.4s ease;
-}
-
-.episode-banner-card:hover:not(.locked) .episode-thumb-section img {
-    transform: scale(1.05);
-}
-
-/* Locked overlay */
-.locked-overlay-banner {
-    position: absolute;
-    inset: 0;
-    background: rgba(26,41,64,0.7);
+/* Bottom Glowing Orb Banner */
+.episode-orb-section {
+    background: linear-gradient(135deg, var(--sb-sky-dark) 0%, #1A7BA0 100%);
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    backdrop-filter: blur(2px);
+    position: relative;
+    overflow: hidden;
+    padding: 4px;
+    height: 52px;
+    flex-shrink: 0;
 }
 
-.lock-badge-big {
-    font-size: 2rem;
-    filter: drop-shadow(0 0 8px rgba(255,80,80,0.8));
+.episode-orb-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 60%, rgba(0,240,255,0.4) 0%, transparent 70%);
 }
 
-.lock-text-badge {
-    font-family: var(--font-heading);
-    font-size: 0.75rem;
-    background: #E8303A;
-    color: white;
-    padding: 3px 12px;
-    border-radius: var(--radius-pill);
-    letter-spacing: 1px;
+.episode-orb-img {
+    width: 65px;
+    height: 44px;
+    object-fit: contain;
+    position: relative;
+    z-index: 2;
+    filter: drop-shadow(0 0 10px rgba(0,240,255,0.85));
+    animation: orbFloat 4s ease-in-out infinite;
+}
+
+@keyframes orbFloat {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50%       { transform: translateY(-4px) rotate(2deg); }
+}
+
+/* Floating Carousel navigation arrows */
+.carousel-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--sb-yellow);
+    border: 3.5px solid var(--sb-white);
+    color: var(--sb-text-dark);
+    font-size: 1.3rem;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(0,80,140,0.3);
+    z-index: 12;
+    transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.25s, opacity 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    outline: none;
+}
+
+.carousel-nav-btn:hover {
+    background: var(--sb-white);
+    color: var(--sb-yellow-dark);
+    border-color: var(--sb-yellow);
+    transform: translateY(-50%) scale(1.15);
+    box-shadow: 0 8px 24px rgba(0,80,140,0.4);
+}
+
+.carousel-nav-btn.prev {
+    left: 8px;
+}
+
+.carousel-nav-btn.next {
+    right: 8px;
 }
 
 /* Loading state */
