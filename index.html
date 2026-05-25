@@ -58,7 +58,11 @@
 
             <!-- Tab Navigation -->
             <nav class="main-nav">
-                <button id="tab-videos-btn" class="nav-tab active" data-screen="screen-dashboard">
+                <button id="tab-home-btn" class="nav-tab active" data-screen="screen-home">
+                    <span class="tab-icon">🏠</span>
+                    <span class="tab-label">Home</span>
+                </button>
+                <button id="tab-videos-btn" class="nav-tab" data-screen="screen-dashboard">
                     <span class="tab-icon">📺</span>
                     <span class="tab-label">Episodes</span>
                 </button>
@@ -87,8 +91,33 @@
         <!-- Screen Content Area -->
         <main class="screen-area">
 
+            <!-- SCREEN: Home Screen Dashboard -->
+            <section id="screen-home" class="app-screen active">
+                <div class="home-layout">
+                    <!-- Left Section: Premium Hero & Trio Image -->
+                    <div class="home-hero-card">
+                        <div class="home-hero-badge">⚡ SPACE MAIN-DECK // INITIALIZED</div>
+                        <h1 class="home-hero-title">Welcome to the Superbook Command Console!</h1>
+                        <p class="home-hero-desc">
+                            Join <strong>Chris</strong>, <strong>Joy</strong>, and <strong>Gizmo</strong> on an epic, interactive journey through the greatest stories ever told. Travel back in time, test your wisdom, and earn elite upgrades.
+                        </p>
+                        <div class="home-action-buttons">
+                            <button class="sb-btn sb-btn-green animate-pulse" id="home-start-journey-btn">🚀 LAUNCH TIME PORTAL</button>
+                            <button class="sb-btn sb-btn-blue" id="home-goto-shop-btn">🛠️ VISIT UPGRADE LAB</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Section: Character Photo Graphic -->
+                    <div class="home-graphic-card">
+                        <img src="assets/trio.png" alt="Chris, Joy and Gizmo in the Portal Cockpit" class="home-trio-img">
+                        <div class="graphic-glowing-ring"></div>
+                        <div class="character-caption-badge">👤 Chris, Joy & Gizmo</div>
+                    </div>
+                </div>
+            </section>
+
             <!-- SCREEN: Episode Guide Dashboard -->
-            <section id="screen-dashboard" class="app-screen active">
+            <section id="screen-dashboard" class="app-screen">
                 <div class="page-header-band">
                     <h1 class="page-title">EPISODE GUIDE</h1>
                 </div>

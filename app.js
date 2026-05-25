@@ -550,7 +550,9 @@ function updateActiveTabs(screenId) {
     });
 
     let activeTabId = null;
-    if (screenId === 'dashboard' || screenId === 'video') {
+    if (screenId === 'home') {
+        activeTabId = 'tab-home-btn';
+    } else if (screenId === 'dashboard' || screenId === 'video') {
         activeTabId = 'tab-videos-btn';
     } else if (screenId === 'quizzes' || screenId === 'quiz') {
         activeTabId = 'tab-quizzes-btn';
@@ -568,21 +570,32 @@ function updateActiveTabs(screenId) {
 
 // --- 4. NAVIGATION & SCREEN MANAGER (Router) ---
 // --- 4. NAVIGATION & SCREEN MANAGER (Router) ---
-let currentActiveScreen = 'dashboard';
+let currentActiveScreen = 'home';
 
 const screenOrder = {
-    'dashboard': 0,
-    'video': 0.5,
-    'quizzes': 1,
-    'quiz': 1.5,
-    'contests': 2,
-    'settings': 3,
-    'shop': 3.5,
-    'admin': 3.8
+    'home': 0,
+    'dashboard': 1,
+    'video': 1.5,
+    'quizzes': 2,
+    'quiz': 2.5,
+    'contests': 3,
+    'settings': 4,
+    'shop': 4.5,
+    'admin': 4.8
 };
 
 function triggerInteriorAnimations(screenId) {
-    if (screenId === 'dashboard') {
+    if (screenId === 'home') {
+        gsap.killTweensOf(['.home-hero-card', '.home-graphic-card']);
+        gsap.fromTo('.home-hero-card', 
+            { x: -80, opacity: 0 }, 
+            { x: 0, opacity: 1, duration: 0.65, ease: "back.out(1.1)" }
+        );
+        gsap.fromTo('.home-graphic-card', 
+            { x: 80, opacity: 0, scale: 0.8 }, 
+            { x: 0, opacity: 1, scale: 1, duration: 0.65, ease: "back.out(1.1)" }
+        );
+    } else if (screenId === 'dashboard') {
         gsap.fromTo('.episode-banner-card', 
             { y: 55, opacity: 0, rotateY: 15 }, 
             { y: 0, opacity: 1, rotateY: 0, duration: 0.6, stagger: 0.08, ease: "back.out(1.2)", onComplete: () => {
@@ -789,12 +802,32 @@ function navigateTo(screenId) {
 // Connect navigation event listeners
 const brandLogo = document.querySelector('.header-brand');
 if (brandLogo) {
-    brandLogo.addEventListener('click', () => navigateTo('dashboard'));
+    brandLogo.addEventListener('click', () => navigateTo('home'));
+}
+const homeTab = document.getElementById('tab-home-btn');
+if (homeTab) {
+    homeTab.addEventListener('click', () => navigateTo('home'));
 }
 document.getElementById('tab-videos-btn').addEventListener('click', () => navigateTo('dashboard'));
 document.getElementById('tab-quizzes-btn').addEventListener('click', () => navigateTo('quizzes'));
 document.getElementById('tab-contests-btn').addEventListener('click', () => navigateTo('contests'));
 document.getElementById('tab-settings-btn').addEventListener('click', () => navigateTo('settings'));
+
+// Homepage action button hooks
+const startJourneyBtn = document.getElementById('home-start-journey-btn');
+if (startJourneyBtn) {
+    startJourneyBtn.addEventListener('click', () => {
+        navigateTo('dashboard');
+        triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+    });
+}
+const homeShopBtn = document.getElementById('home-goto-shop-btn');
+if (homeShopBtn) {
+    homeShopBtn.addEventListener('click', () => {
+        navigateTo('shop');
+        triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+    });
+}
 
 // Settings Screen inner card navigation
 const gotoShopBtn = document.getElementById('settings-goto-shop-btn');
@@ -2672,5 +2705,5 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAdminView();
     
     // Navigate home
-    navigateTo('dashboard');
+    navigateTo('home');
 });
