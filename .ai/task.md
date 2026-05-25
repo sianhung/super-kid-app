@@ -1,20 +1,17 @@
-# Task Board - Super Kid PWA Premium Animations & UI Overhaul
+# Task Board - Super Kid PWA Minimalist Overhaul & Home Screen
 
 ## Active Tasks
-- `[x]` **Step 1: Setup Workspace & Integrate GSAP**
-  - Link GSAP CDN core library in `index.html`
-  - Add cosmic cyber-grid scanline overlays and particle backdrop markup
-- `[x]` **Step 2: Smooth Screen Slide transitions (`app.js` & `styles.css`)**
-  - Upgrade `navigateTo()` to animate screen swapping with elastic GSAP transitions
-  - Build staggered entry animations for active screen cards and list elements
-- `[x]` **Step 3: Horizontal Carousel Episode Guide (`index.html`, `styles.css`, `app.js`)**
-  - Convert dashboard listing container into a fluid horizontal-scrolling card track
-  - Add left/right floating arrow buttons and touch progress scrollbar
-  - Add 3D card perspective tilt animations and visual glowing locks
-- `[x]` **Step 4: Star Coin Burst Physics (`app.js` & `styles.css`)**
-  - Build a custom canvas particle system to burst stars (`⭐`) under the user's cursor
-  - Program bezier-curve trajectory paths tracking directly into the header points bar coordinates
-  - Program scaling spring-bounce reactions on the coins box when star particles land
-- `[x]` **Step 5: E2E Verification & Live Surge Deployment**
-  - Run automated Puppeteer browser assertions in landscape formats
-  - Push the updated PWA code live to `https://sianhung-superkid.surge.sh`
+- `[x]` **Step 1: Setup Home Page Structure (`index.html`)**
+  - Add navigation tab `tab-home-btn` and `#screen-home` section markup
+  - Embed character cover graphic `assets/trio.png` and cyber-control dashboard action buttons
+- `[x]` **Step 2: Sleek Minimalist Cyber-Slate Theme (`styles.css`)**
+  - Replace sky-blue children's color variables with deep cyber-slate void `#090f13` and neon highlight tokens
+  - Re-engineer solid white containers into beautiful translucent glassmorphic dark-mode panels
+  - Style home page layout including flexible flexboxes, glowing frame borders, and pulse button triggers
+- `[x]` **Step 3: Core Navigation Router Upgrades (`app.js`)**
+  - Integrate `home` screen index into `screenOrder` routing map
+  - Modify `navigateTo()` to connect initial home loading and homepage console launch CTAs
+  - Write staggered home card and trio image entrance fade animations
+- `[x]` **Step 4: E2E Verification & Live Surge Deployment**
+  - Run verification checks to assert seamless transition and asset rendering
+  - Redeploy live to `https://sianhung-superkid.surge.sh`
