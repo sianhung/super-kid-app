@@ -1042,14 +1042,19 @@ function startEpisode(episode) {
     
     cleanupYoutubePolling();
 
-    // Verify if YouTube API is fully loaded and ready
-    if (window.YT && window.YT.Player) {
+    // Verify if YouTube API is fully loaded and ready using the official YT.ready queue
+    if (window.YT && typeof window.YT.ready === 'function') {
+        window.YT.ready(function() {
+            createYoutubePlayer(episode);
+        });
+    } else if (window.YT && window.YT.Player) {
         createYoutubePlayer(episode);
     } else {
         console.log("YouTube API not ready yet. Queuing episode:", episode.title);
         ytPlayerPendingEpisode = episode;
     }
 }
+
 
 function createYoutubePlayer(episode) {
     // Clean and destroy old player

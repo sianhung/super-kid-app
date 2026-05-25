@@ -877,7 +877,7 @@ body, html {
     border-radius: 50%;
     border: 2px solid var(--sb-yellow);
     background: var(--sb-yellow);
-    color: var(--sb-text-dark);
+    color: var(--sb-off-white);
     font-size: 1.1rem;
     cursor: pointer;
     display: flex;
@@ -885,13 +885,14 @@ body, html {
     justify-content: center;
     font-weight: 900;
     transition: var(--transition);
-    box-shadow: 0 0 12px rgba(255,208,0,0.5);
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.45);
 }
 
 .vid-play-btn:hover {
     transform: scale(1.1);
-    box-shadow: 0 0 20px rgba(255,208,0,0.8);
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.75);
 }
+
 
 .vid-title-wrap { overflow: hidden; }
 

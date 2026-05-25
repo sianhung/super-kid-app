@@ -1,4 +1,4 @@
-const CACHE_NAME = 'super-kid-v9';
+const CACHE_NAME = 'super-kid-v10';
 const ASSETS = [
   './',
   './index.html',
@@ -48,6 +48,11 @@ self.addEventListener('activate', (e) => {
 // Fetch listener with Network-First strategy for HTML and Stale-While-Revalidate for CSS/JS
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
+  
+  // Bypass Service Worker for any external/cross-origin requests (like YouTube API, videos, etc.)
+  if (url.origin !== self.location.origin) {
+    return;
+  }
   
   // For HTML navigations: Network-First
   if (e.request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('index.html')) {
