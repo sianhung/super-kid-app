@@ -1,4 +1,4 @@
-const CACHE_NAME = 'super-kid-v3';
+const CACHE_NAME = 'super-kid-v4';
 const ASSETS = [
   './',
   './index.html',
@@ -44,16 +44,52 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Network fallback to cache fetch listener
+// Fetch listener with Network-First strategy for HTML and Stale-While-Revalidate for CSS/JS
 self.addEventListener('fetch', (e) => {
+  const url = new URL(e.request.url);
+  
+  // For HTML navigations: Network-First
+  if (e.request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('index.html')) {
+    e.respondWith(
+      fetch(e.request)
+        .then((res) => {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
+          return res;
+        })
+        .catch(() => caches.match(e.request))
+    );
+    return;
+  }
+  
+  // For cached local assets: Stale-While-Revalidate (fetch new in background, return cache instantly)
+  const isLocalAsset = ASSETS.some(asset => {
+    const cleanAsset = asset.replace('./', '');
+    return cleanAsset && url.pathname.endsWith(cleanAsset);
+  });
+
+  if (isLocalAsset) {
+    e.respondWith(
+      caches.match(e.request).then((cachedResponse) => {
+        const fetchPromise = fetch(e.request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
+          }
+          return networkResponse;
+        }).catch(() => {});
+        
+        return cachedResponse || fetchPromise;
+      })
+    );
+    return;
+  }
+
+  // Fallback default fetch
   e.respondWith(
     caches.match(e.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(e.request).catch(() => {
-        // Safe fallback if fetch fails and asset isn't in cache
-        console.log('[Service Worker] Asset fetch failed, offline mode active.');
+      return cachedResponse || fetch(e.request).catch(() => {
+        console.log('[Service Worker] Fetch fallback.');
       });
     })
   );
