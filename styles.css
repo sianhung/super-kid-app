@@ -376,28 +376,170 @@ body, html {
     overflow: hidden;
 }
 
+/* Y2K Cosmic Overlay - Slow Breathing Glow */
 .cosmic-backdrop::before {
     content: '';
     position: absolute;
     inset: 0;
     background-image: 
-        radial-gradient(circle at 15% 25%, rgba(255,255,255,0.15) 0%, transparent 45%),
-        radial-gradient(circle at 85% 75%, rgba(255,255,255,0.18) 0%, transparent 45%);
+        radial-gradient(circle at 15% 25%, rgba(0, 240, 255, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 85% 75%, rgba(255, 0, 157, 0.12) 0%, transparent 50%);
     animation: pulseGlow 12s ease-in-out infinite alternate;
-}
-
-.cosmic-backdrop::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.04) 50%), linear-gradient(90deg, rgba(255, 255, 255, 0.01), rgba(0, 0, 0, 0.02), rgba(255, 255, 255, 0.01));
-    background-size: 100% 4px, 6px 100%;
-    opacity: 0.5;
+    mix-blend-mode: screen;
 }
 
 @keyframes pulseGlow {
-    0% { transform: scale(1); opacity: 0.75; }
-    100% { transform: scale(1.08); opacity: 0.95; }
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(1.15); opacity: 0.9; }
+}
+
+/* Y2K 3D Perspective Digital Cyber Grid Overlay */
+.y2k-grid-overlay {
+    position: absolute;
+    inset: -100px;
+    background-image: 
+        linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
+    background-size: 60px 60px;
+    transform: perspective(600px) rotateX(60deg);
+    transform-origin: center top;
+    animation: y2kGridMove 25s linear infinite;
+    opacity: 0.7;
+    mix-blend-mode: screen;
+}
+
+@keyframes y2kGridMove {
+    0% {
+        transform: perspective(600px) rotateX(60deg) translateY(0);
+    }
+    100% {
+        transform: perspective(600px) rotateX(60deg) translateY(60px);
+    }
+}
+
+/* High-tech Scanning CRT Scanline Filter */
+.y2k-scanlines {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.15) 50%
+    );
+    background-size: 100% 4px;
+    opacity: 0.4;
+    z-index: 1;
+}
+
+/* Cybernetic Neon Scanning Laser Sweep */
+.y2k-laser-sweep {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--sb-yellow), #ff009d, var(--sb-yellow), transparent);
+    box-shadow: 0 0 12px var(--sb-yellow), 0 0 20px #ff009d;
+    opacity: 0.55;
+    animation: laserSweep 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    z-index: 2;
+}
+
+@keyframes laserSweep {
+    0% {
+        top: -5%;
+    }
+    100% {
+        top: 105%;
+    }
+}
+
+/* Slow-Drifting Pulsing Cyber Glow Orbs */
+.y2k-glow-orb-1,
+.y2k-glow-orb-2 {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.35;
+    mix-blend-mode: screen;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.y2k-glow-orb-1 {
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, var(--sb-yellow) 0%, rgba(0, 240, 255, 0) 70%);
+    top: 10%;
+    left: -10%;
+    animation: orbDrift1 20s ease-in-out infinite alternate;
+}
+
+.y2k-glow-orb-2 {
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, #ff009d 0%, rgba(255, 0, 157, 0) 70%);
+    bottom: -10%;
+    right: -10%;
+    animation: orbDrift2 24s ease-in-out infinite alternate;
+}
+
+@keyframes orbDrift1 {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(120px, 80px) scale(1.2); }
+}
+
+@keyframes orbDrift2 {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(-100px, -120px) scale(1.15); }
+}
+
+/* Glowing Y2K Sparkly 4-Point Starburst Vectors */
+.y2k-starburst {
+    position: absolute;
+    color: #fff;
+    font-size: 2.2rem;
+    text-shadow: 0 0 10px #fff, 0 0 20px var(--sb-yellow), 0 0 35px #ff009d;
+    opacity: 0.65;
+    animation: starPulse 4s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.y2k-starburst-1 {
+    top: 15%;
+    left: 20%;
+    animation-delay: 0s;
+}
+
+.y2k-starburst-2 {
+    top: 70%;
+    left: 10%;
+    font-size: 1.6rem;
+    animation-delay: 1.5s;
+}
+
+.y2k-starburst-3 {
+    top: 25%;
+    right: 15%;
+    font-size: 1.8rem;
+    animation-delay: 0.8s;
+}
+
+.y2k-starburst-4 {
+    top: 80%;
+    right: 25%;
+    font-size: 1.4rem;
+    animation-delay: 2.2s;
+}
+
+@keyframes starPulse {
+    0%, 100% {
+        transform: scale(0.8) rotate(0deg);
+        opacity: 0.4;
+    }
+    50% {
+        transform: scale(1.2) rotate(180deg);
+        opacity: 0.9;
+    }
 }
 
 /* Screen Area Overrides */
