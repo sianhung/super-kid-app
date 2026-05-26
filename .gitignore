@@ -9,4 +9,6 @@ android/.gradle/
 android/.gradle-cache/
 android/app/build/
 android/bingo.apk
+android/jvm/
+android/cmdline-tools/
 

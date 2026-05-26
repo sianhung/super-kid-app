@@ -128,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
     boolean JSCanOpenWindowsAutomatically = true;
     boolean DomStorageEnabled = true;
     boolean DatabaseEnabled = true;
-    boolean MediaPlaybackRequiresUserGesture = true;
+    boolean MediaPlaybackRequiresUserGesture = false;
     boolean SavePassword = true;
     boolean AllowFileAccess = true;
     boolean AllowFileAccessFromFileURLs = true;
@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
     boolean edgeToEdge = true;
     boolean forceDarkTheme = false;
     boolean allowMixedContent = false;
-    String cacheMode = "default";
+    String cacheMode = "no_cache";
     int fadeInDuration = 400;
     boolean DebugWebView = false;
 
