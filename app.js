@@ -28,6 +28,14 @@ const MOCK_EPISODES = [
         thumbnail_url: 'assets/episode3.png',
         order_index: 3,
         description: 'Solve the mysterious floating candies phenomenon while uncovering the secrets of kind hearts and sweet friendship!'
+    },
+    {
+        id: 'e4c45d99-3e4d-4cf9-b7af-985fc289de04',
+        title: 'Moses and the Great Escape!',
+        youtube_video_id: '01QkS49n6_0',
+        thumbnail_url: 'assets/episode4.png',
+        order_index: 4,
+        description: 'Join Gizmo and Moses as they stand before Pharaoh, witness the ten plagues, and escape across the parted Red Sea!'
     }
 ];
 
@@ -44,6 +52,13 @@ const MOCK_CONTESTS = [
         title: 'Daily Verse Recitation Challenge',
         description: 'Record or type your best recitation of the weekly spaceship scripture: "For God did not give us a spirit of cowardice, but rather of power and love and self-control" (2 Timothy 1:7).',
         thumbnail_url: 'assets/crown.png',
+        points_reward: 200
+    },
+    {
+        id: 'c4c45d99-3e4d-4cf9-b7af-985fc289de04',
+        title: 'Parting the Red Sea Art Challenge',
+        description: 'Draw Moses raising his staff as the giant walls of the Red Sea part! Include cute fish swimming inside the water walls and Gizmo cheering in the middle. Submit your drawing to earn rewards!',
+        thumbnail_url: 'assets/quest_moses.png',
         points_reward: 200
     }
 ];
@@ -83,6 +98,41 @@ const MOCK_QUIZZES = [
             {
                 question_text: 'What do you earn when you finish a challenge?',
                 options: ['SuperPoints', 'Gold Bars', 'Trophies', 'Stickers'],
+                correct_option_index: 0,
+                coin_reward: 50
+            }
+        ]
+    },
+    {
+        episode_id: 'e4c45d99-3e4d-4cf9-b7af-985fc289de04',
+        questions: [
+            {
+                question_text: 'What did Moses use to part the Red Sea?',
+                options: ['His shepherd\'s staff', 'A golden sword', 'A giant net', 'A plasma blaster'],
+                correct_option_index: 0,
+                coin_reward: 50
+            },
+            {
+                question_text: 'How many plagues did God send upon Egypt?',
+                options: ['3 plagues', '5 plagues', '7 plagues', '10 plagues'],
+                correct_option_index: 3,
+                coin_reward: 50
+            },
+            {
+                question_text: 'What did God use to lead the people by day?',
+                options: ['A pillar of cloud', 'A golden arrow', 'A floating compass', 'A mapping drone'],
+                correct_option_index: 0,
+                coin_reward: 50
+            },
+            {
+                question_text: 'What food fell from heaven to feed the people in the desert?',
+                options: ['Manna', 'Jellyfish candies', 'Space cookies', 'Fruit loops'],
+                correct_option_index: 0,
+                coin_reward: 50
+            },
+            {
+                question_text: 'Which sea did the Israelites cross on dry land?',
+                options: ['The Red Sea', 'The Blue Sea', 'The Bubble Ocean', 'The Dead Sea'],
                 correct_option_index: 0,
                 coin_reward: 50
             }
@@ -142,6 +192,11 @@ class AppState {
         const storedEpisodes = localStorage.getItem('superkid_episodes');
         if (storedEpisodes) {
             this.episodes = JSON.parse(storedEpisodes);
+            // Upgrade path for new episodes
+            if (this.episodes.length < MOCK_EPISODES.length) {
+                this.episodes = MOCK_EPISODES;
+                this.saveEpisodes();
+            }
         } else {
             this.episodes = MOCK_EPISODES;
             this.saveEpisodes();
@@ -150,6 +205,11 @@ class AppState {
         const storedQuizzes = localStorage.getItem('superkid_quizzes');
         if (storedQuizzes) {
             this.quizzes = JSON.parse(storedQuizzes);
+            // Upgrade path for new quizzes
+            if (this.quizzes.length < MOCK_QUIZZES.length) {
+                this.quizzes = MOCK_QUIZZES;
+                this.saveQuizzes();
+            }
         } else {
             this.quizzes = MOCK_QUIZZES;
             this.saveQuizzes();
@@ -158,6 +218,11 @@ class AppState {
         const storedContests = localStorage.getItem('superkid_contests');
         if (storedContests) {
             this.contests = JSON.parse(storedContests);
+            // Upgrade path for new contests
+            if (this.contests.length < MOCK_CONTESTS.length) {
+                this.contests = MOCK_CONTESTS;
+                this.saveContests();
+            }
         } else {
             this.contests = MOCK_CONTESTS;
             this.saveContests();
@@ -2899,6 +2964,18 @@ document.addEventListener('DOMContentLoaded', () => {
                      `<p>Noah trusted God completely. He and his family worked very hard to build the giant Ark, exactly as God instructed. When the Ark was finished, God sent pairs of all kinds of animals from all over the world to Noah: giraffes, elephants, lions, pandas, and tiny birds. They all marched into the Ark two by two! 🦒🐘🐼</p>` +
                      `<p>Once everyone was safe inside, God shut the heavy door. Rain began to fall heavily for forty days and forty nights! The water rose higher and higher, but the giant Ark floated safely on top of the deep blue waves.</p>` +
                      `<p>Eventually, the rain stopped and a warm wind dried the land. Noah opened the window and saw green leaves growing. When they walked out onto dry land, God placed a beautiful giant rainbow in the sky as a promise that He would always protect and love His creation! 🌈</p>`
+        },
+        moses: {
+            title: "Moses and the Great Exodus",
+            badge: "Exodus 14",
+            image: "assets/story_moses.png",
+            content: `<p>A long time ago, the Israelites were working very hard as slaves in the hot land of Egypt. God heard their prayers and called a brave man named Moses to lead them to freedom! 👤</p>` +
+                     `<p>Moses went to the mighty Pharaoh and said, <strong>"Let my people go!"</strong> When Pharaoh refused, God sent ten miraculous plagues upon Egypt—including swarms of frogs, locusts, and total darkness—to show His great power! 🐸🦗🌑</p>` +
+                     `<p>Finally, Pharaoh agreed, and Moses led a massive march of people out of Egypt! They traveled through the desert, guided by a glowing pillar of cloud by day and a warm pillar of fire by night. ☁️🔥</p>` +
+                     `<p>But soon, Pharaoh changed his mind and sent his giant chariot army to chase them! The Israelites found themselves trapped: the deep Red Sea was in front of them, and Pharaoh's army was rushing behind them! The people were terrified. 🛡️🏇</p>` +
+                     `<p>But Moses said, <strong>"Do not be afraid! Stand firm and see the deliverance the Lord will bring you today!"</strong></p>` +
+                     `<p>Then, Moses held his wooden shepherd's staff high over the water. Suddenly, a mighty wind blew, and the Red Sea parted in two! Giant walls of blue water rose on the left and right, and a dry sandy pathway opened in the middle! The Israelites walked safely across to the other side! 🌊🚶‍♂️</p>` +
+                     `<p>Once they were safe, the waters returned, and Moses led the people in a joyful song of celebration and thanksgiving to God! 💃🎵</p>`
         },
         david: {
             title: "David and Goliath",
