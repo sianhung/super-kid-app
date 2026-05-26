@@ -245,13 +245,29 @@ class AppState {
         const storedStreak = localStorage.getItem('superkid_streak');
         if (storedStreak) {
             this.streak = JSON.parse(storedStreak);
+            // Migrate old format (completedDays array of booleans)
+            if (this.streak.completedDays && !this.streak.completedDates) {
+                const today = new Date();
+                this.streak.completedDates = [];
+                this.streak.completedDays.forEach((done, i) => {
+                    if (done) {
+                        const d = new Date(today);
+                        d.setDate(today.getDate() - (5 - i));
+                        this.streak.completedDates.push(d.toISOString().split('T')[0]);
+                    }
+                });
+                delete this.streak.completedDays;
+                this.saveStreak();
+            }
         } else {
+            // Start with today as the first completed day
+            const todayStr = new Date().toISOString().split('T')[0];
             this.streak = {
                 daysCount: 1,
                 weeksCount: 0,
-                completedDays: [true, false, false, false, false, false] // Day 0 is completed initially
+                completedDates: [todayStr]
             };
-            localStorage.setItem('superkid_streak', JSON.stringify(this.streak));
+            this.saveStreak();
         }
 
         // Non-persisted UI states
@@ -262,6 +278,9 @@ class AppState {
         this.activeQuizTotalCoins = 0;
         this.activeContestId = null;
         this.selectedFile = null;
+        
+        // Calendar view state
+        this.calendarViewDate = new Date();
     }
 
     saveUser() {
@@ -428,87 +447,141 @@ class AppState {
     renderStreakCalendar() {
         const streakDaysLabel = document.getElementById('streak-days-label');
         const streakWeeksLabel = document.getElementById('streak-weeks-label');
-        const streakContainer = document.getElementById('streak-calendar-container');
+        const streakBoostLabel = document.getElementById('streak-boost-label');
 
         if (streakDaysLabel) streakDaysLabel.textContent = `${this.streak.daysCount} DAY${this.streak.daysCount > 1 ? 'S' : ''}`;
         if (streakWeeksLabel) streakWeeksLabel.textContent = `${this.streak.weeksCount} WEEK${this.streak.weeksCount > 1 ? 'S' : ''}`;
+        if (streakBoostLabel) {
+            const boost = this.streak.daysCount >= 7 ? '🔥 ON FIRE!' : this.streak.daysCount >= 3 ? '⚡ BOOSTED!' : '📖 KEEP GOING!';
+            streakBoostLabel.textContent = boost;
+        }
 
-        if (streakContainer) {
-            const cards = streakContainer.querySelectorAll('.calendar-card');
-            cards.forEach((card, index) => {
-                const isCompleted = this.streak.completedDays[index];
-                if (isCompleted) {
-                    card.classList.add('completed');
-                    const icon = card.querySelector('.cal-status-icon');
-                    if (icon) icon.textContent = '✔';
+        this.renderFullMonthCalendar();
+    }
+
+    renderFullMonthCalendar() {
+        const grid = document.getElementById('cal-days-grid');
+        const label = document.getElementById('cal-month-year-label');
+        if (!grid || !label) return;
+
+        const viewDate = this.calendarViewDate || new Date();
+        const year = viewDate.getFullYear();
+        const month = viewDate.getMonth();
+
+        const MONTHS = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE',
+                        'JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+        label.textContent = `${MONTHS[month]} ${year}`;
+
+        // Get first day of month and total days
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        const completedDates = new Set(this.streak.completedDates || []);
+
+        grid.innerHTML = '';
+
+        // Empty cells before first day
+        for (let i = 0; i < firstDay; i++) {
+            const empty = document.createElement('div');
+            empty.className = 'cal-day-cell empty';
+            grid.appendChild(empty);
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const cellDate = new Date(year, month, day);
+            const cellStr = cellDate.toISOString().split('T')[0];
+
+            const cell = document.createElement('div');
+            cell.textContent = day;
+
+            const isToday = cellStr === todayStr;
+            const isCompleted = completedDates.has(cellStr);
+            const isFuture = cellDate > today && !isToday;
+
+            if (isCompleted && !isToday) {
+                cell.className = 'cal-day-cell completed';
+                cell.title = '✅ Bible study completed!';
+            } else if (isToday) {
+                cell.className = isCompleted ? 'cal-day-cell today completed' : 'cal-day-cell today';
+                cell.title = 'Today';
+            } else if (isFuture) {
+                cell.className = 'cal-day-cell future-day';
+            } else {
+                cell.className = 'cal-day-cell active-day';
+                // Past days can be clicked to mark study completed retroactively (up to 2 days back)
+                const daysDiff = Math.floor((today - cellDate) / (1000 * 60 * 60 * 24));
+                if (daysDiff <= 2) {
+                    cell.addEventListener('click', () => {
+                        if (!completedDates.has(cellStr)) {
+                            this.markDayCompleted(cellStr);
+                        }
+                    });
                 } else {
-                    card.classList.remove('completed');
-                    const icon = card.querySelector('.cal-status-icon');
-                    if (icon) icon.textContent = '▶';
+                    cell.classList.add('future-day');
+                    cell.classList.remove('active-day');
                 }
-            });
+            }
+
+            // Today click = mark complete
+            if (isToday && !isCompleted) {
+                cell.style.cursor = 'pointer';
+                cell.addEventListener('click', (e) => {
+                    lastClickX = e.clientX;
+                    lastClickY = e.clientY;
+                    this.markDayCompleted(todayStr);
+                });
+            }
+
+            grid.appendChild(cell);
         }
     }
 
+    markDayCompleted(dateStr) {
+        if (!this.streak.completedDates) this.streak.completedDates = [];
+        if (this.streak.completedDates.includes(dateStr)) return;
+
+        this.streak.completedDates.push(dateStr);
+        this.streak.daysCount = this.streak.completedDates.length;
+        this.streak.weeksCount = Math.floor(this.streak.daysCount / 7);
+        this.saveStreak();
+        this.renderStreakCalendar();
+
+        // Reward
+        this.incrementCoins(20);
+        this.incrementXP(20);
+        triggerBubblePopFX(lastClickX || window.innerWidth / 2, lastClickY || window.innerHeight / 2);
+    }
+
     setupStreakCalendarInteractivity() {
-        const streakContainer = document.getElementById('streak-calendar-container');
-        if (!streakContainer) return;
+        // Calendar prev/next month navigation
+        const prevBtn = document.getElementById('cal-prev-month');
+        const nextBtn = document.getElementById('cal-next-month');
 
-        const cards = streakContainer.querySelectorAll('.calendar-card');
-        cards.forEach((card, index) => {
-            card.addEventListener('click', (e) => {
-                lastClickX = e.clientX;
-                lastClickY = e.clientY;
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                if (!this.calendarViewDate) this.calendarViewDate = new Date();
+                this.calendarViewDate.setMonth(this.calendarViewDate.getMonth() - 1);
+                this.renderFullMonthCalendar();
+                triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+            });
+        }
 
-                const isCompleted = this.streak.completedDays[index];
-                if (!isCompleted) {
-                    // Check if it's the immediate next day to complete
-                    const prevCompleted = index === 0 || this.streak.completedDays[index - 1];
-                    if (prevCompleted) {
-                        this.streak.completedDays[index] = true;
-                        this.streak.daysCount++;
-                        if (this.streak.daysCount % 7 === 0) {
-                            this.streak.weeksCount++;
-                        }
-                        this.saveStreak();
-                        this.renderStreakCalendar();
-
-                        // Visual bounce
-                        gsap.killTweensOf(card);
-                        gsap.fromTo(card, 
-                            { scale: 1 }, 
-                            { scale: 1.3, duration: 0.15, ease: "power1.out", onComplete: () => {
-                                gsap.to(card, { scale: 1, duration: 0.3, ease: "elastic.out(1.2, 0.4)" });
-                            }}
-                        );
-
-                        triggerBubblePopFX(lastClickX, lastClickY);
-                        this.incrementCoins(20);
-                        this.incrementXP(20);
-                    } else {
-                        // Locked day wiggle warning
-                        gsap.killTweensOf(card);
-                        gsap.fromTo(card,
-                            { x: -5 },
-                            { x: 5, duration: 0.08, repeat: 3, yoyo: true, onComplete: () => {
-                                card.style.transform = 'none';
-                            }}
-                        );
-                        alert("⚠️ Complete your previous Bible study days first to continue your Bible Streak!");
-                    }
-                } else {
-                    // Completed day bounce
-                    gsap.killTweensOf(card);
-                    gsap.fromTo(card, 
-                        { scale: 1 }, 
-                        { scale: 1.15, duration: 0.1, ease: "power1.out", onComplete: () => {
-                            gsap.to(card, { scale: 1, duration: 0.2, ease: "power1.inOut" });
-                        }}
-                    );
-                    triggerBubblePopFX(lastClickX, lastClickY);
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                if (!this.calendarViewDate) this.calendarViewDate = new Date();
+                const now = new Date();
+                const nextMonth = new Date(this.calendarViewDate);
+                nextMonth.setMonth(nextMonth.getMonth() + 1);
+                // Don't navigate past current month
+                if (nextMonth <= now || (nextMonth.getMonth() === now.getMonth() && nextMonth.getFullYear() === now.getFullYear())) {
+                    this.calendarViewDate.setMonth(this.calendarViewDate.getMonth() + 1);
+                    this.renderFullMonthCalendar();
+                    triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
                 }
             });
-        });
+        }
     }
 }
 
@@ -3022,17 +3095,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 triggerConfettiVictoryFX();
                 triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
 
-                // Automatically check off next calendar card to increment streak
-                let nextUnlockedIndex = state.streak.completedDays.indexOf(false);
-                if (nextUnlockedIndex !== -1) {
-                    state.streak.completedDays[nextUnlockedIndex] = true;
-                    state.streak.daysCount++;
-                    if (state.streak.daysCount % 7 === 0) {
-                        state.streak.weeksCount++;
-                    }
-                    state.saveStreak();
-                    state.renderStreakCalendar();
-                }
+                // Automatically check off today in the real calendar streak
+                const todayStr = new Date().toISOString().split('T')[0];
+                state.markDayCompleted(todayStr);
+
             });
         }
     }
@@ -3109,7 +3175,127 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize admin view based on auth status
     renderAdminView();
-    
+
+    // =====================================================================
+    // SETTINGS DRAWER SYSTEM
+    // =====================================================================
+    function openSettingsDrawer() {
+        const drawer = document.getElementById('settings-drawer');
+        const overlay = document.getElementById('settings-drawer-overlay');
+        if (!drawer || !overlay) return;
+
+        // Update drawer stats live
+        const drawerUsername = document.getElementById('drawer-username');
+        const drawerLevelBadge = document.getElementById('drawer-level-badge');
+        const drawerLevelVal = document.getElementById('drawer-level-val');
+        const drawerCoinsVal = document.getElementById('drawer-coins-val');
+        const drawerStreakVal = document.getElementById('drawer-streak-val');
+        const drawerXpBar = document.getElementById('drawer-xp-bar');
+        const drawerXpLabel = document.getElementById('drawer-xp-label');
+
+        if (drawerUsername) drawerUsername.textContent = state.user.display_name || 'Explorer';
+        if (drawerLevelBadge) drawerLevelBadge.textContent = `LV.${state.user.level || 1}`;
+        if (drawerLevelVal) drawerLevelVal.textContent = state.user.level || 1;
+        if (drawerCoinsVal) drawerCoinsVal.textContent = state.user.star_coins || 0;
+        if (drawerStreakVal) drawerStreakVal.textContent = state.streak.daysCount || 0;
+        if (drawerXpBar) drawerXpBar.style.width = `${state.user.xp || 0}%`;
+        if (drawerXpLabel) drawerXpLabel.textContent = `${state.user.xp || 0} / 100 XP`;
+
+        drawer.classList.add('open');
+        overlay.classList.add('open');
+    }
+
+    function closeSettingsDrawer() {
+        const drawer = document.getElementById('settings-drawer');
+        const overlay = document.getElementById('settings-drawer-overlay');
+        if (drawer) drawer.classList.remove('open');
+        if (overlay) overlay.classList.remove('open');
+    }
+
+    // Hook hamburger menu button to open drawer
+    const headerMenuBtnDrawer = document.getElementById('header-menu-btn');
+    if (headerMenuBtnDrawer) {
+        // Remove old listener by replacing element clone
+        const newMenuBtn = headerMenuBtnDrawer.cloneNode(true);
+        headerMenuBtnDrawer.parentNode.replaceChild(newMenuBtn, headerMenuBtnDrawer);
+        newMenuBtn.addEventListener('click', () => {
+            openSettingsDrawer();
+            triggerBubblePopFX(40, 40);
+        });
+    }
+
+    // Overlay click to close
+    const drawerOverlay = document.getElementById('settings-drawer-overlay');
+    if (drawerOverlay) {
+        drawerOverlay.addEventListener('click', closeSettingsDrawer);
+    }
+
+    // Close button
+    const drawerCloseBtn = document.getElementById('drawer-close-btn');
+    if (drawerCloseBtn) {
+        drawerCloseBtn.addEventListener('click', closeSettingsDrawer);
+    }
+
+    // Drawer Navigation Items
+    function drawerNav(screenId) {
+        closeSettingsDrawer();
+        setTimeout(() => {
+            navigateTo(screenId);
+            triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+        }, 250);
+    }
+
+    const dHome = document.getElementById('drawer-goto-home');
+    if (dHome) dHome.addEventListener('click', () => drawerNav('home'));
+
+    const dWatch = document.getElementById('drawer-goto-watch');
+    if (dWatch) dWatch.addEventListener('click', () => drawerNav('dashboard'));
+
+    const dGames = document.getElementById('drawer-goto-games');
+    if (dGames) dGames.addEventListener('click', () => drawerNav('quizzes'));
+
+    const dBible = document.getElementById('drawer-goto-bible');
+    if (dBible) dBible.addEventListener('click', () => drawerNav('bible'));
+
+    const dQuests = document.getElementById('drawer-goto-quests');
+    if (dQuests) dQuests.addEventListener('click', () => drawerNav('contests'));
+
+    const dShop = document.getElementById('drawer-goto-shop');
+    if (dShop) dShop.addEventListener('click', () => drawerNav('shop'));
+
+    const dAdmin = document.getElementById('drawer-goto-admin');
+    if (dAdmin) dAdmin.addEventListener('click', () => drawerNav('admin'));
+
+    // Language selector (placeholder)
+    const dLang = document.getElementById('drawer-language-btn');
+    if (dLang) {
+        dLang.addEventListener('click', () => {
+            triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+            alert('🌐 Language Settings\n\nAvailable: English (EN)\nMore languages coming soon!');
+        });
+    }
+
+    // FAQ button
+    const dFaq = document.getElementById('drawer-faq-btn');
+    if (dFaq) {
+        dFaq.addEventListener('click', () => {
+            triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+            alert('❓ Help & FAQs\n\n🔹 How do I earn coins?\nWatch episodes and complete quizzes!\n\n🔹 How does the streak work?\nTap a day on the calendar after completing Bible study!\n\n🔹 How do I unlock episodes?\nFinish watching and pass the quiz!');
+        });
+    }
+
+    // Reset Progress button
+    const dReset = document.getElementById('drawer-reset-btn');
+    if (dReset) {
+        dReset.addEventListener('click', () => {
+            if (confirm('⚠️ Are you sure you want to reset all your progress?\nThis will clear all coins, XP, streak, and episode history.')) {
+                localStorage.clear();
+                location.reload();
+            }
+        });
+    }
+
     // Navigate home
     navigateTo('home');
 });
+
