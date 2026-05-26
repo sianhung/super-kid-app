@@ -1,4 +1,4 @@
-const CACHE_NAME = 'super-kid-v10';
+const CACHE_NAME = 'super-kid-v11';
 const ASSETS = [
   './',
   './index.html',
@@ -45,7 +45,7 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Fetch listener with Network-First strategy for HTML and Stale-While-Revalidate for CSS/JS
+// Fetch listener with Network-First strategy for HTML, JS, CSS and Stale-While-Revalidate for static assets
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   
@@ -54,8 +54,14 @@ self.addEventListener('fetch', (e) => {
     return;
   }
   
-  // For HTML navigations: Network-First
-  if (e.request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('index.html')) {
+  // For HTML, JS, CSS: Network-First (ensures immediate updates on deploy when online)
+  if (
+    e.request.mode === 'navigate' || 
+    url.pathname === '/' || 
+    url.pathname.endsWith('index.html') ||
+    url.pathname.endsWith('app.js') ||
+    url.pathname.endsWith('styles.css')
+  ) {
     e.respondWith(
       fetch(e.request)
         .then((res) => {
