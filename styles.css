@@ -100,10 +100,8 @@ body, html {
     opacity: 0.85;
 }
 
-@media (orientation: portrait) {
-    .orientation-warning { display: flex; }
-    .app-shell { display: none !important; }
-}
+/* Disabled orientation lock so the app runs beautifully in portrait */
+.orientation-warning { display: none !important; }
 
 /* =====================================================================
    APP SHELL — GRID LAYOUT
