@@ -7,17 +7,17 @@
 const MOCK_EPISODES = [
     {
         id: 'e1c12e87-0b1a-48d6-848e-653ea956bc01',
-        title: 'Journey to the Bubble Planet!',
+        title: 'ဖန်ဆင်းခြင်းအစ',
         youtube_video_id: 'R9K2Sj76L38',
-        thumbnail_url: 'assets/episode1.png',
+        thumbnail_url: 'assets/jesus_teaching.png',
         order_index: 1,
         description: 'Travel with Gizmo through the magical bubble portal and learn about the miraculous power of God\'s love!'
     },
     {
         id: 'e2c23f88-1c2b-49e7-959f-764fb067cd02',
-        title: 'The Rainbow Jellyfish Chase',
+        title: 'ပေးဆပ်ခြင်းရဲ့ အကောင်းဆုံးလက်ဆောင်',
         youtube_video_id: 'JtV_n6dMh_s',
-        thumbnail_url: 'assets/episode2.png',
+        thumbnail_url: 'assets/story_creation.png',
         order_index: 2,
         description: 'Chase the beautiful rainbow jellyfish across the cosmic ocean and discover why sharing brings joy!'
     },
@@ -196,6 +196,24 @@ class AppState {
             if (this.episodes.length < MOCK_EPISODES.length) {
                 this.episodes = MOCK_EPISODES;
                 this.saveEpisodes();
+            } else {
+                // Migrate old English default titles/thumbnails to new Burmese/Biblical versions
+                let migrated = false;
+                this.episodes.forEach(ep => {
+                    if (ep.title === 'Journey to the Bubble Planet!' || ep.title === 'Journey to the Bubble Planet') {
+                        ep.title = 'ဖန်ဆင်းခြင်းအစ';
+                        ep.thumbnail_url = 'assets/jesus_teaching.png';
+                        migrated = true;
+                    }
+                    if (ep.title === 'The Rainbow Jellyfish Chase') {
+                        ep.title = 'ပေးဆပ်ခြင်းရဲ့ အကောင်းဆုံးလက်ဆောင်';
+                        ep.thumbnail_url = 'assets/story_creation.png';
+                        migrated = true;
+                    }
+                });
+                if (migrated) {
+                    this.saveEpisodes();
+                }
             }
         } else {
             this.episodes = MOCK_EPISODES;
