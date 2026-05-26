@@ -74,3 +74,39 @@ This app is built using zero-dependency, serverless web technologies (`HTML5`, `
    - Click **Save**.
 
 Your live URL will be ready in seconds at `https://YOUR_GITHUB_USERNAME.github.io/super-kid-app/`! Share this link with your client or load it on your phone to install it.
+
+---
+
+## 🤖 Native Android Build (Capacitor/WebView Wrapper)
+
+In addition to PWA compliance, this repository includes a fully configured native Android build environment inside the `android/` directory. This allows you to compile the website into a standalone, signed, release-ready Android `.apk` file that runs in forced landscape mode with an immersive edge-to-edge layout.
+
+The pre-compiled, signed APK is located at:
+* [android/superkid.apk](file:///Users/Richard/.gemini/antigravity-ide/scratch/super-kid-app/android/superkid.apk)
+
+### Build Environment Prerequisites
+To rebuild the Android package locally, ensure you have:
+1. **Java 17 (JDK 17)**: Set your `JAVA_HOME`.
+2. **Android SDK**: Install API level 33/34 and platform-tools. Expose `ANDROID_HOME` in your environment.
+
+Example shell exports:
+```bash
+export JAVA_HOME="/Users/Richard/jdk17/Contents/Home"
+export ANDROID_HOME="/Users/Richard/android-sdk"
+export PATH="$JAVA_HOME/bin:$ANDROID_HOME/platform-tools:$PATH"
+```
+
+### How to Compile the APK
+Navigate to the `android/` folder and run the `make.sh` build script:
+```bash
+cd android
+./make.sh build superkid.conf
+```
+The script will automatically:
+- Apply all configuration parameters from `superkid.conf` (pointing to the live Surge URL).
+- Set package naming to `com.superkid.webtoapk`.
+- Lock orientation to **Landscape mode** for an optimal kid-friendly interface.
+- Enable full immersive **Edge-to-Edge display** support.
+- Set deep link integration for `sianhung-superkid.surge.sh`.
+- Compile and sign the APK in release mode with standard signing keys.
+
