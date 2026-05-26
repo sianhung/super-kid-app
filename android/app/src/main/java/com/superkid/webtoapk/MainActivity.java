@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
     boolean AllowFileAccess = true;
     boolean AllowFileAccessFromFileURLs = true;
     boolean showDetailsOnErrorScreen = false;
-    boolean forceLandscapeMode = true;
+    boolean forceLandscapeMode = false;
     boolean edgeToEdge = true;
     boolean forceDarkTheme = false;
     boolean allowMixedContent = false;

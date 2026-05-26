@@ -3,3 +3,10 @@ Thumbs.db
 *.log
 .system_generated/
 .gemini/
+
+# Android build cache and outputs
+android/.gradle/
+android/.gradle-cache/
+android/app/build/
+android/bingo.apk
+
