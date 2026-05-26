@@ -47,7 +47,7 @@ body, html {
     width: 100%; height: 100%;
     overflow: hidden;
     font-family: var(--font-body);
-    background: #090f13; /* fallback only — wallpaper renders via .cosmic-backdrop */
+    background: #5bc0f2; /* fallback only — wallpaper renders via .cosmic-backdrop */
     color: var(--sb-text-dark);
 }
 
@@ -370,7 +370,7 @@ body, html {
 .cosmic-backdrop {
     position: fixed;
     inset: 0;
-    background: #090f13 url('assets/y2k_bg.png') no-repeat center center;
+    background: #5bc0f2 url('assets/y2k_bg.png') no-repeat center center;
     background-size: cover;
     pointer-events: none;
     z-index: 0; /* raised so it's visible above transparent body/app-shell */
@@ -496,55 +496,6 @@ body, html {
     100% { transform: translate(-100px, -120px) scale(1.15); }
 }
 
-/* Glowing Y2K Sparkly 4-Point Starburst Vectors */
-.y2k-starburst {
-    position: absolute;
-    color: #fff;
-    font-size: 2.2rem;
-    text-shadow: 0 0 10px #fff, 0 0 20px var(--sb-yellow), 0 0 35px #ff009d;
-    opacity: 0.65;
-    animation: starPulse 4s ease-in-out infinite;
-    pointer-events: none;
-    z-index: 1;
-}
-
-.y2k-starburst-1 {
-    top: 15%;
-    left: 20%;
-    animation-delay: 0s;
-}
-
-.y2k-starburst-2 {
-    top: 70%;
-    left: 10%;
-    font-size: 1.6rem;
-    animation-delay: 1.5s;
-}
-
-.y2k-starburst-3 {
-    top: 25%;
-    right: 15%;
-    font-size: 1.8rem;
-    animation-delay: 0.8s;
-}
-
-.y2k-starburst-4 {
-    top: 80%;
-    right: 25%;
-    font-size: 1.4rem;
-    animation-delay: 2.2s;
-}
-
-@keyframes starPulse {
-    0%, 100% {
-        transform: scale(0.8) rotate(0deg);
-        opacity: 0.4;
-    }
-    50% {
-        transform: scale(1.2) rotate(180deg);
-        opacity: 0.9;
-    }
-}
 
 /* Screen Area Overrides */
 .screen-area {
