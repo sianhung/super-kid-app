@@ -11,6 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
     <link rel="preload" as="image" href="assets/y2k_bg.png">
+    <link rel="preload" as="image" href="assets/super_kid_hero.png">
+    <link rel="preload" as="image" href="assets/jesus_teaching.png">
     <link rel="stylesheet" href="styles.css">
 
     <!-- Progressive Web App (PWA) linkages -->
@@ -18,7 +20,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Super Kid">
-    <link rel="apple-touch-icon" href="assets/mascot.png">
+    <link class="apple-touch-icon" href="assets/mascot.png">
     <!-- GSAP core library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <!-- Static YouTube Iframe Player API -->
@@ -38,47 +40,35 @@
 
         <!-- Top Header Bar -->
         <header class="top-header">
-            <!-- Logo + Brand -->
-            <div class="header-brand">
+            <!-- Left Side Action Items: Hamburger and Search -->
+            <div class="header-left-actions">
+                <button type="button" class="header-action-btn menu-btn" id="header-menu-btn">☰</button>
+                <button type="button" class="header-action-btn search-btn" id="header-search-btn">🔍</button>
+            </div>
+
+            <!-- Middle Stats Capsules -->
+            <div class="header-stats-capsules">
+                <!-- Energy/Star Capsule -->
+                <div class="stats-capsule energy-capsule" id="star-coin-counter-box">
+                    <span class="capsule-icon">⚡</span>
+                    <span class="capsule-value" id="star-coin-label">0</span>
+                </div>
+                <!-- XP Leveling Capsule -->
+                <div class="stats-capsule xp-capsule">
+                    <span class="capsule-icon">XP</span>
+                    <div class="xp-progress-bar-container">
+                        <div class="xp-progress-fill" id="header-xp-progress-fill" style="width: 0%"></div>
+                    </div>
+                    <span class="capsule-value" id="header-xp-label">0/100</span>
+                </div>
+            </div>
+
+            <!-- Right Profile Avatar -->
+            <div class="header-profile-avatar" id="settings-trigger-btn">
                 <div class="mascot-avatar" id="profile-mascot-container">
                     <img src="assets/mascot.png" alt="Gizmo" class="mascot-img">
                     <div id="equipped-accessory" class="equipped-overlay"></div>
                 </div>
-                <div class="brand-text">
-                    <span class="brand-label">SUPER KID</span>
-                    <span class="brand-sub" id="display-name-label">Bible Adventures</span>
-                </div>
-            </div>
-
-            <!-- Tab Navigation -->
-            <nav class="main-nav">
-                <button id="tab-home-btn" class="nav-tab active" data-screen="screen-home">
-                    <span class="tab-icon">🏠</span>
-                    <span class="tab-label">Home</span>
-                </button>
-                <button id="tab-videos-btn" class="nav-tab" data-screen="screen-dashboard">
-                    <span class="tab-icon">📺</span>
-                    <span class="tab-label">Episodes</span>
-                </button>
-                <button id="tab-quizzes-btn" class="nav-tab" data-screen="screen-quizzes">
-                    <span class="tab-icon">🧠</span>
-                    <span class="tab-label">Quizzes</span>
-                </button>
-                <button id="tab-contests-btn" class="nav-tab" data-screen="screen-contests">
-                    <span class="tab-icon">🏆</span>
-                    <span class="tab-label">Contests</span>
-                </button>
-                <button id="tab-settings-btn" class="nav-tab" data-screen="screen-settings">
-                    <span class="tab-icon">⚙️</span>
-                    <span class="tab-label">Settings</span>
-                </button>
-            </nav>
-
-            <!-- Points Counter -->
-            <div class="points-counter" id="star-coin-counter-box">
-                <span class="points-icon">⭐</span>
-                <span class="points-value" id="star-coin-label">0</span>
-                <span class="points-unit">pts</span>
             </div>
         </header>
 
@@ -88,32 +78,115 @@
             <!-- SCREEN: Home Screen Dashboard -->
             <section id="screen-home" class="app-screen active">
                 <div class="home-layout">
-                    <!-- Left Section: Premium Hero & Trio Image -->
-                    <div class="home-hero-card">
-                        <div class="home-hero-badge">⚡ SPACE MAIN-DECK // INITIALIZED</div>
-                        <h1 class="home-hero-title">Welcome to the Superbook Command Console!</h1>
-                        <p class="home-hero-desc" style="margin-bottom: 8px;">
-                            Super Kid (Superbook Command Console) ဆိုတာ ကလေးတွေအတွက် ကျမ်းစာလာဖြစ်ရပ်တွေကို စိတ်လှုပ်ရှားစရာ ကောင်းကောင်းနဲ့ လေ့လာနိုင်အောင် ဖန်တီးထားတဲ့ interactive (အပြန်အလှန်တုံ့ပြန်နိုင်သော) ပလက်ဖောင်းတစ်ခု ဖြစ်ပါတယ်။
-                        </p>
-                        <div class="home-bullets-container" style="display: flex; flex-direction: column; gap: 8px; font-size: 0.82rem; color: var(--sb-text-muted); line-height: 1.45; margin-bottom: 12px; background: rgba(0, 240, 255, 0.03); border: 1.5px dashed rgba(0, 240, 255, 0.15); padding: 12px 16px; border-radius: var(--radius-btn);">
-                            <div><strong>🧭 ဇာတ်ကောင်များနှင့် ခရီးသွားခြင်း:</strong> Chris, Joy နဲ့ စက်ရုပ်ကလေး Gizmo တို့နဲ့အတူ အချိန်ခရီးသွားစက် (Time Portal) ကိုသုံးပြီး သမိုင်းဝင် ကျမ်းစာပုံပြင်တွေထဲကို စွန့်စားခန်းထွက်ကြရမှာ ဖြစ်ပါတယ်။</div>
-                            <div><strong>🧠 ဂိမ်းနှင့် ပဟေဠိများ:</strong> ပဟေဠိ (Quizzes) များ ဖြေဆိုခြင်း၊ ပြိုင်ပွဲ (Contests) များတွင် ပါဝင်ခြင်းဖြင့် မိမိတို့ရဲ့ အသိပညာကို စမ်းသပ်နိုင်ပါတယ်။</div>
-                            <div><strong>💎 ဆုလာဘ်များနှင့် အဆင့်မြှင့်တင်ခြင်း:</strong> အလုပ်တွေကို ပြီးမြောက်အောင် လုပ်ဆောင်ခြင်းဖြင့် ရမှတ် (Points) များ စုဆောင်းနိုင်ပြီး Upgrade Lab တွင် အဆင့်မြှင့်တင်မှုများ ပြုလုပ်နိုင်ပါတယ်။</div>
+                    <!-- Top Character Hero Banner -->
+                    <div class="kids-hero-banner">
+                        <img src="assets/super_kid_hero.png" alt="Chris, Joy and Gizmo" class="hero-banner-img">
+                        <!-- Signature Logo Red Overlay -->
+                        <div class="hero-brand-red-badge">
+                            <span class="superbook-font-style">SUPERBOOK</span>
                         </div>
-                        <p class="home-hero-desc" style="font-size: 0.84rem; font-style: italic; color: var(--sb-yellow); font-weight: 600; margin-bottom: 12px;">
-                            ✨ ကလေးများအတွက် ပျော်ရွှင်စရာလည်းကောင်းပြီး ပညာလည်းရစေမယ့် အွန်လိုင်းစွန့်စားခန်း နေရာတစ်ခု ဖြစ်ပါတယ်။
-                        </p>
-                        <div class="home-action-buttons">
-                            <button class="sb-btn sb-btn-green animate-pulse" id="home-start-journey-btn">🚀 LAUNCH TIME PORTAL</button>
-                            <button class="sb-btn sb-btn-blue" id="home-goto-shop-btn">🛠️ VISIT UPGRADE LAB</button>
+                        <!-- Float Mail Icon Button -->
+                        <button type="button" class="floating-mail-btn" id="home-mail-btn">✉️</button>
+                    </div>
+
+                    <!-- Daily Bible Streak Tracker -->
+                    <div class="bible-streak-widget">
+                        <div class="streak-header">
+                            <span class="streak-label">BIBLE STREAK</span>
+                            <div class="streak-summary">
+                                <span class="streak-count-day" id="streak-days-label">1 DAY</span>
+                                <span class="streak-count-week" id="streak-weeks-label">0 WEEKS</span>
+                                <span class="streak-boost" id="streak-boost-label">GAMEBOOST 1X</span>
+                            </div>
+                        </div>
+                        <!-- Calendar cards tracker -->
+                        <div class="streak-calendar-grid" id="streak-calendar-container">
+                            <div class="calendar-card" data-day="0">
+                                <span class="cal-month">MAY</span>
+                                <span class="cal-date">20</span>
+                                <div class="cal-status-icon">▶</div>
+                            </div>
+                            <div class="calendar-card" data-day="1">
+                                <span class="cal-month">MAY</span>
+                                <span class="cal-date">21</span>
+                                <div class="cal-status-icon">▶</div>
+                            </div>
+                            <div class="calendar-card" data-day="2">
+                                <span class="cal-month">MAY</span>
+                                <span class="cal-date">22</span>
+                                <div class="cal-status-icon">▶</div>
+                            </div>
+                            <div class="calendar-card" data-day="3">
+                                <span class="cal-month">MAY</span>
+                                <span class="cal-date">23</span>
+                                <div class="cal-status-icon">▶</div>
+                            </div>
+                            <div class="calendar-card" data-day="4">
+                                <span class="cal-month">MAY</span>
+                                <span class="cal-date">24</span>
+                                <div class="cal-status-icon">▶</div>
+                            </div>
+                            <div class="calendar-card" data-day="5">
+                                <span class="cal-month">MAY</span>
+                                <span class="cal-date">25</span>
+                                <div class="cal-status-icon">▶</div>
+                            </div>
                         </div>
                     </div>
-                    
-                    <!-- Right Section: Character Photo Graphic -->
-                    <div class="home-graphic-card">
-                        <img src="assets/trio.png" alt="Chris, Joy and Gizmo in the Portal Cockpit" class="home-trio-img">
-                        <div class="graphic-glowing-ring"></div>
-                        <div class="character-caption-badge">👤 Chris, Joy & Gizmo</div>
+
+                    <!-- Center Bible Section Banner Card -->
+                    <div class="jesus-teaching-entrance-card" id="home-jesus-entrance-card">
+                        <img src="assets/jesus_teaching.png" alt="Jesus teaching children in a bright green pasture" class="jesus-card-img">
+                        <div class="jesus-btn-overlay">
+                            <button type="button" class="sb-btn sb-btn-orange animate-pulse" id="home-find-out-how-btn">FIND OUT HOW!</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SCREEN: Interactive Bible Stories -->
+            <section id="screen-bible" class="app-screen">
+                <div class="page-header-band">
+                    <h1 class="page-title">BIBLE STORIES</h1>
+                </div>
+                <div class="bible-stories-container">
+                    <!-- Story 1: Creation -->
+                    <div class="bible-story-card" data-story="creation">
+                        <div class="bible-story-thumb-wrap">
+                            <img src="assets/story_creation.png" alt="The Creation of the World" class="bible-story-thumb">
+                            <div class="bible-story-badge">🎨 Genesis 1</div>
+                        </div>
+                        <div class="bible-story-info">
+                            <h2 class="bible-story-title">The Creation</h2>
+                            <p class="bible-story-desc">Discover how God created the beautiful heavens, the earth, oceans, green trees, and all living creatures in the beginning!</p>
+                            <button type="button" class="sb-btn sb-btn-green read-story-btn" data-story="creation">📖 READ STORY (+50 XP)</button>
+                        </div>
+                    </div>
+
+                    <!-- Story 2: Noah's Ark -->
+                    <div class="bible-story-card" data-story="noah">
+                        <div class="bible-story-thumb-wrap">
+                            <img src="assets/story_noah.png" alt="Noah's Great Ark" class="bible-story-thumb">
+                            <div class="bible-story-badge">🌊 Genesis 6</div>
+                        </div>
+                        <div class="bible-story-info">
+                            <h2 class="bible-story-title">Noah's Great Ark</h2>
+                            <p class="bible-story-desc">Follow Noah as he builds a giant wooden ark to save pairs of cute animals from the massive global flood waters!</p>
+                            <button type="button" class="sb-btn sb-btn-green read-story-btn" data-story="noah">📖 READ STORY (+50 XP)</button>
+                        </div>
+                    </div>
+
+                    <!-- Story 3: David and Goliath -->
+                    <div class="bible-story-card" data-story="david">
+                        <div class="bible-story-thumb-wrap">
+                            <img src="assets/story_david.png" alt="David and Goliath" class="bible-story-thumb">
+                            <div class="bible-story-badge">⚔️ 1 Samuel 17</div>
+                        </div>
+                        <div class="bible-story-info">
+                            <h2 class="bible-story-title">David and Goliath</h2>
+                            <p class="bible-story-desc">Watch brave young shepherd boy David stand up to the giant warrior Goliath with nothing but a small sling and strong faith!</p>
+                            <button type="button" class="sb-btn sb-btn-green read-story-btn" data-story="david">📖 READ STORY (+50 XP)</button>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -643,6 +716,50 @@
             </div>
 
         </main>
+
+        <!-- Tab Navigation (Bottom Bar) -->
+        <nav class="main-nav">
+            <button id="tab-home-btn" class="nav-tab active" data-screen="screen-home">
+                <span class="tab-icon">🏠</span>
+                <span class="tab-label">Home</span>
+            </button>
+            <button id="tab-games-btn" class="nav-tab" data-screen="screen-quizzes">
+                <span class="tab-icon">🎮</span>
+                <span class="tab-label">Games</span>
+            </button>
+            <button id="tab-bible-btn" class="nav-tab" data-screen="screen-bible">
+                <span class="tab-icon">📖</span>
+                <span class="tab-label">Bible</span>
+            </button>
+            <button id="tab-quests-btn" class="nav-tab" data-screen="screen-contests">
+                <span class="tab-icon">⚔️</span>
+                <span class="tab-label">Quests</span>
+            </button>
+            <button id="tab-watch-btn" class="nav-tab" data-screen="screen-dashboard">
+                <span class="tab-icon">📺</span>
+                <span class="tab-label">Watch</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Bible Story Visual Reader Modal -->
+    <div id="bible-story-modal" class="bible-reader-modal" style="display: none;">
+        <div class="bible-reader-card">
+            <div class="bible-reader-header">
+                <span id="bible-reader-badge" class="bible-reader-badge">GENESIS</span>
+                <button type="button" id="close-bible-reader-btn" class="close-reader-btn">✖</button>
+            </div>
+            <div class="bible-reader-scrollable">
+                <img id="bible-reader-img" src="" alt="Story Image" class="bible-reader-img">
+                <h1 id="bible-reader-title" class="bible-reader-title">Story Title</h1>
+                <div id="bible-reader-content" class="bible-reader-content">
+                    <!-- Dynamic story text parsed for kids -->
+                </div>
+            </div>
+            <div class="bible-reader-footer">
+                <button type="button" id="bible-reader-complete-btn" class="sb-btn sb-btn-green complete-read-btn">🎉 I FINISHED READING (+50 XP)</button>
+            </div>
+        </div>
     </div>
 
     <script src="app.js"></script>

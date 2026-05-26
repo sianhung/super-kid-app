@@ -2921,5 +2921,638 @@ body, html {
     }
 }
 
+/* =====================================================================
+   KIDS PORTAL OVERHAUL & GRAPHIC GAME THEMING (styles.css Additions)
+   ===================================================================== */
+
+/* --- A. HEADER STATS CAPSULES & ACTION ITEMS --- */
+.top-header {
+    background: var(--sb-sky-dark);
+    height: 70px;
+    padding: 0 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3.5px solid var(--sb-yellow);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    z-index: 1000;
+}
+
+.header-left-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.header-action-btn {
+    background: #ffffff;
+    color: #10b5f1;
+    border: 3px solid #10b5f1;
+    border-radius: 12px;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.header-action-btn:active {
+    transform: scale(0.92);
+    background: #f1f5f9;
+}
+
+.header-stats-capsules {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.stats-capsule {
+    background: linear-gradient(90deg, #10b5f1, #00f0ff);
+    border: 2.5px solid #ffffff;
+    border-radius: var(--radius-pill);
+    height: 38px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    box-shadow: 0 4px 10px rgba(0, 240, 255, 0.3);
+    color: #ffffff;
+    font-weight: 900;
+    font-size: 0.8rem;
+    gap: 5px;
+}
+
+.energy-capsule {
+    background: linear-gradient(90deg, #0284c7, #0ea5e9);
+    border-color: #ffffff;
+    box-shadow: 0 4px 8px rgba(14, 165, 233, 0.35);
+}
+
+.xp-capsule {
+    background: #1e293b;
+    border-color: #38bdf8;
+    color: #38bdf8;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+    font-size: 0.72rem;
+    padding-right: 8px;
+}
+
+.xp-progress-bar-container {
+    background: rgba(255, 255, 255, 0.12);
+    height: 8px;
+    width: 50px;
+    border-radius: 50px;
+    overflow: hidden;
+    margin: 0 4px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.xp-progress-fill {
+    background: #10b981;
+    height: 100%;
+    width: 0%;
+    border-radius: 50px;
+    transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+.header-profile-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2.5px solid #ffffff;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.header-profile-avatar:active {
+    transform: scale(0.92);
+}
+
+.header-profile-avatar .mascot-avatar {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+}
+
+
+/* --- B. GLASSMORPHIC BOTTOM NAV BAR OVERRIDE --- */
+@media (max-width: 768px), (orientation: portrait) {
+    .main-nav {
+        position: fixed;
+        bottom: 10px !important;
+        left: 14px !important;
+        right: 14px !important;
+        width: calc(100% - 28px) !important;
+        height: 74px !important;
+        background: rgba(255, 255, 255, 0.72) !important;
+        backdrop-filter: blur(15px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(15px) saturate(180%) !important;
+        border-radius: 35px !important;
+        border: 2.5px solid rgba(255, 255, 255, 0.45) !important;
+        display: flex !important;
+        justify-content: space-around !important;
+        align-items: center !important;
+        padding: 0 10px !important;
+        z-index: 10000 !important;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22) !important;
+    }
+    
+    .nav-tab {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 4px !important;
+        margin: 0 !important;
+        color: #334155 !important;
+        font-family: var(--font-heading) !important;
+        font-size: 0.65rem !important;
+        font-weight: 700 !important;
+        cursor: pointer !important;
+        transition: transform 0.25s ease, color 0.25s ease !important;
+        gap: 3px !important;
+        flex: 1;
+    }
+    
+    .nav-tab .tab-icon {
+        font-size: 1.45rem !important;
+        transition: transform 0.25s ease !important;
+        display: block !important;
+    }
+    
+    .nav-tab .tab-label {
+        display: block !important; /* Reveal labels dynamically below icons */
+        text-transform: uppercase;
+        font-size: 0.58rem !important;
+        letter-spacing: 0.5px;
+        opacity: 0.78;
+    }
+    
+    .nav-tab.active {
+        color: #0284c7 !important;
+        transform: translateY(-2px) !important;
+    }
+    
+    .nav-tab.active .tab-icon {
+        transform: scale(1.15) !important;
+        filter: drop-shadow(0 4px 6px rgba(2, 132, 199, 0.25)) !important;
+    }
+    
+    .nav-tab.active .tab-label {
+        opacity: 1 !important;
+        font-weight: 900 !important;
+    }
+    
+    .screen-area {
+        height: calc(100vh - 70px - 90px) !important; /* Space for top-header and bottom navigation card */
+        margin-bottom: 90px !important;
+    }
+}
+
+
+/* --- C. HOME PAGE SCREEN WIDGETS --- */
+.home-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 12px;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    box-sizing: border-box;
+}
+
+/* Character Hero banner overlay */
+.kids-hero-banner {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 3px solid #ffffff;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+    height: 195px;
+    flex-shrink: 0;
+}
+
+.hero-banner-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hero-brand-red-badge {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(180deg, #ef4444, #dc2626);
+    color: #ffffff;
+    text-align: center;
+    padding: 5px 0;
+    border-top: 3px solid #ffffff;
+    box-shadow: 0 -4px 8px rgba(0,0,0,0.15);
+}
+
+.superbook-font-style {
+    font-family: var(--font-heading);
+    font-size: 1.3rem;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+
+.floating-mail-btn {
+    position: absolute;
+    top: 45%;
+    right: 14px;
+    transform: translateY(-50%);
+    background: #ffffff;
+    border: 3.5px solid #10b5f1;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.floating-mail-btn:active {
+    transform: translateY(-50%) scale(0.9);
+    background-color: #f1f5f9;
+}
+
+/* Daily Bible Streak Tracker */
+.bible-streak-widget {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    border-radius: 18px;
+    border: 2.5px solid rgba(255,255,255,0.12);
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+    flex-shrink: 0;
+}
+
+.streak-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1.5px dashed rgba(255,255,255,0.15);
+    padding-bottom: 6px;
+}
+
+.streak-label {
+    font-family: var(--font-heading);
+    color: #ffffff;
+    font-size: 0.8rem;
+    letter-spacing: 1.2px;
+    font-weight: 800;
+}
+
+.streak-summary {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 0.65rem;
+    font-weight: 800;
+}
+
+.streak-count-day {
+    color: #10b5f1;
+}
+
+.streak-count-week {
+    color: #10b981;
+}
+
+.streak-boost {
+    color: #f59e0b;
+}
+
+.streak-calendar-grid {
+    display: flex;
+    justify-content: space-between;
+    gap: 5px;
+    width: 100%;
+}
+
+.calendar-card {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.08);
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 2px;
+    color: #ffffff;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.calendar-card.completed {
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+    border-color: #ffffff;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+    transform: translateY(-2px);
+}
+
+.cal-month {
+    font-size: 0.5rem;
+    font-weight: 800;
+    opacity: 0.8;
+}
+
+.cal-date {
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    font-weight: 900;
+    margin-top: 1px;
+}
+
+.cal-status-icon {
+    font-size: 0.55rem;
+    margin-top: 1px;
+    opacity: 0.75;
+}
+
+.calendar-card.completed .cal-status-icon {
+    opacity: 1;
+}
+
+/* Center Jesus teaching illustrated button card */
+.jesus-teaching-entrance-card {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 3px solid #ffffff;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+    height: 240px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.jesus-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.jesus-btn-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.06);
+}
+
+.sb-btn-orange {
+    background: linear-gradient(180deg, #f97316, #ea580c) !important;
+    border: 2.5px solid #ffffff !important;
+    color: #ffffff !important;
+    box-shadow: 0 6px 20px rgba(234, 88, 12, 0.6) !important;
+    font-family: var(--font-heading) !important;
+    font-size: 1rem !important;
+    font-weight: 900 !important;
+    padding: 10px 22px !important;
+    border-radius: 16px !important;
+    transition: transform 0.2s ease !important;
+}
+
+.sb-btn-orange:active {
+    transform: scale(0.94) !important;
+}
+
+
+/* --- D. INTERACTIVE BIBLE STORIES GRID --- */
+.bible-stories-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 12px;
+    overflow-y: auto;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    align-items: center;
+}
+
+.bible-story-card {
+    background: var(--sb-card-bg);
+    border-radius: 20px;
+    border: 2.5px solid var(--sb-border);
+    overflow: hidden;
+    width: 100%;
+    max-width: 330px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--sb-shadow);
+    transition: transform 0.25s ease;
+}
+
+.bible-story-card:hover {
+    transform: translateY(-2px);
+}
+
+.bible-story-thumb-wrap {
+    position: relative;
+    height: 150px;
+    width: 100%;
+    overflow: hidden;
+}
+
+.bible-story-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.bible-story-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    color: #ffffff;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    border: 1.5px solid rgba(255,255,255,0.15);
+}
+
+.bible-story-info {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.bible-story-title {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    color: #ffffff;
+    margin: 0;
+    font-weight: 800;
+}
+
+.bible-story-desc {
+    font-size: 0.7rem;
+    line-height: 1.4;
+    color: #cbd5e1;
+    margin: 0;
+}
+
+.bible-story-info .sb-btn {
+    margin-top: 4px;
+    padding: 8px 12px;
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+
+
+/* --- E. BIBLE STORY VISUAL MODAL READER --- */
+.bible-reader-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 20000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.bible-reader-card {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    border: 3px solid #10b5f1;
+    border-radius: 24px;
+    width: 100%;
+    max-width: 340px;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+}
+
+.bible-reader-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    border-bottom: 2px solid rgba(255,255,255,0.08);
+}
+
+.bible-reader-badge {
+    background: #10b5f1;
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: 900;
+    padding: 4px 10px;
+    border-radius: 10px;
+    text-transform: uppercase;
+}
+
+.close-reader-btn {
+    background: rgba(255,255,255,0.1);
+    border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background 0.2s ease;
+}
+
+.close-reader-btn:active {
+    background: rgba(255,255,255,0.25);
+}
+
+.bible-reader-scrollable {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.bible-reader-img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 16px;
+    border: 2px solid #ffffff;
+}
+
+.bible-reader-title {
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    color: #ffffff;
+    text-align: center;
+    margin: 0;
+    font-weight: 900;
+}
+
+.bible-reader-content {
+    font-size: 0.84rem;
+    line-height: 1.6;
+    color: #f1f5f9;
+    white-space: pre-wrap;
+    padding-bottom: 20px;
+}
+
+.bible-reader-content p {
+    margin-bottom: 12px;
+}
+
+.bible-reader-footer {
+    padding: 10px 14px;
+    border-top: 2px solid rgba(255,255,255,0.08);
+    display: flex;
+    justify-content: center;
+}
+
+.complete-read-btn {
+    width: 100%;
+    padding: 10px !important;
+    font-size: 0.82rem !important;
+    font-weight: 900 !important;
+}
+
+
 
 

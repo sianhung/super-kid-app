@@ -117,11 +117,15 @@ class AppState {
         
         if (storedUser) {
             this.user = JSON.parse(storedUser);
+            if (this.user.xp === undefined) this.user.xp = 0;
+            if (this.user.level === undefined) this.user.level = 1;
         } else {
             this.user = {
                 id: 'd8c2278e-6d1a-4c28-98e3-0d3a776c5b96',
                 display_name: 'Leo Starry',
                 star_coins: 0,
+                xp: 0,
+                level: 1,
                 avatar_custom_data: { equipped_gear: null },
                 unlocked_index: 1 // Start at episode index 1
             };
@@ -172,6 +176,19 @@ class AppState {
         const storedAdminAuth = localStorage.getItem('superkid_admin_auth');
         this.isAdminLoggedIn = storedAdminAuth === 'true';
         
+        // Streak Tracking
+        const storedStreak = localStorage.getItem('superkid_streak');
+        if (storedStreak) {
+            this.streak = JSON.parse(storedStreak);
+        } else {
+            this.streak = {
+                daysCount: 1,
+                weeksCount: 0,
+                completedDays: [true, false, false, false, false, false] // Day 0 is completed initially
+            };
+            localStorage.setItem('superkid_streak', JSON.stringify(this.streak));
+        }
+
         // Non-persisted UI states
         this.currentScreen = 'dashboard';
         this.activeEpisode = null;
@@ -297,6 +314,136 @@ class AppState {
         this.user.avatar_custom_data.equipped_gear = itemId;
         this.saveUser();
         renderEquippedGear();
+    }
+
+    incrementXP(amount) {
+        if (this.user.xp === undefined) this.user.xp = 0;
+        if (this.user.level === undefined) this.user.level = 1;
+
+        this.user.xp += amount;
+
+        // Level Up Threshold: 100 XP per level
+        let leveledUp = false;
+        while (this.user.xp >= 100) {
+            this.user.xp -= 100;
+            this.user.level++;
+            leveledUp = true;
+        }
+
+        this.saveUser();
+        this.updateXPHeader();
+
+        if (leveledUp) {
+            // Level Up celebration
+            triggerConfettiVictoryFX();
+            triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+            alert(`🎉 LEVEL UP! You reached LEVEL ${this.user.level}! Keep reading and playing to level up!`);
+        }
+    }
+
+    updateXPHeader() {
+        if (this.user.xp === undefined) this.user.xp = 0;
+        if (this.user.level === undefined) this.user.level = 1;
+
+        const xpFill = document.getElementById('header-xp-progress-fill');
+        const xpLabel = document.getElementById('header-xp-label');
+
+        if (xpFill) {
+            xpFill.style.width = `${this.user.xp}%`;
+        }
+        if (xpLabel) {
+            xpLabel.textContent = `LV.${this.user.level} (${this.user.xp}/100)`;
+        }
+    }
+
+    saveStreak() {
+        localStorage.setItem('superkid_streak', JSON.stringify(this.streak));
+    }
+
+    renderStreakCalendar() {
+        const streakDaysLabel = document.getElementById('streak-days-label');
+        const streakWeeksLabel = document.getElementById('streak-weeks-label');
+        const streakContainer = document.getElementById('streak-calendar-container');
+
+        if (streakDaysLabel) streakDaysLabel.textContent = `${this.streak.daysCount} DAY${this.streak.daysCount > 1 ? 'S' : ''}`;
+        if (streakWeeksLabel) streakWeeksLabel.textContent = `${this.streak.weeksCount} WEEK${this.streak.weeksCount > 1 ? 'S' : ''}`;
+
+        if (streakContainer) {
+            const cards = streakContainer.querySelectorAll('.calendar-card');
+            cards.forEach((card, index) => {
+                const isCompleted = this.streak.completedDays[index];
+                if (isCompleted) {
+                    card.classList.add('completed');
+                    const icon = card.querySelector('.cal-status-icon');
+                    if (icon) icon.textContent = '✔';
+                } else {
+                    card.classList.remove('completed');
+                    const icon = card.querySelector('.cal-status-icon');
+                    if (icon) icon.textContent = '▶';
+                }
+            });
+        }
+    }
+
+    setupStreakCalendarInteractivity() {
+        const streakContainer = document.getElementById('streak-calendar-container');
+        if (!streakContainer) return;
+
+        const cards = streakContainer.querySelectorAll('.calendar-card');
+        cards.forEach((card, index) => {
+            card.addEventListener('click', (e) => {
+                lastClickX = e.clientX;
+                lastClickY = e.clientY;
+
+                const isCompleted = this.streak.completedDays[index];
+                if (!isCompleted) {
+                    // Check if it's the immediate next day to complete
+                    const prevCompleted = index === 0 || this.streak.completedDays[index - 1];
+                    if (prevCompleted) {
+                        this.streak.completedDays[index] = true;
+                        this.streak.daysCount++;
+                        if (this.streak.daysCount % 7 === 0) {
+                            this.streak.weeksCount++;
+                        }
+                        this.saveStreak();
+                        this.renderStreakCalendar();
+
+                        // Visual bounce
+                        gsap.killTweensOf(card);
+                        gsap.fromTo(card, 
+                            { scale: 1 }, 
+                            { scale: 1.3, duration: 0.15, ease: "power1.out", onComplete: () => {
+                                gsap.to(card, { scale: 1, duration: 0.3, ease: "elastic.out(1.2, 0.4)" });
+                            }}
+                        );
+
+                        triggerBubblePopFX(lastClickX, lastClickY);
+                        this.incrementCoins(20);
+                        this.incrementXP(20);
+                    } else {
+                        // Locked day wiggle warning
+                        gsap.killTweensOf(card);
+                        gsap.fromTo(card,
+                            { x: -5 },
+                            { x: 5, duration: 0.08, repeat: 3, yoyo: true, onComplete: () => {
+                                card.style.transform = 'none';
+                            }}
+                        );
+                        alert("⚠️ Complete your previous Bible study days first to continue your Bible Streak!");
+                    }
+                } else {
+                    // Completed day bounce
+                    gsap.killTweensOf(card);
+                    gsap.fromTo(card, 
+                        { scale: 1 }, 
+                        { scale: 1.15, duration: 0.1, ease: "power1.out", onComplete: () => {
+                            gsap.to(card, { scale: 1, duration: 0.2, ease: "power1.inOut" });
+                        }}
+                    );
+                    triggerBubblePopFX(lastClickX, lastClickY);
+                }
+            });
+        });
     }
 }
 
@@ -553,13 +700,13 @@ function updateActiveTabs(screenId) {
     if (screenId === 'home') {
         activeTabId = 'tab-home-btn';
     } else if (screenId === 'dashboard' || screenId === 'video') {
-        activeTabId = 'tab-videos-btn';
+        activeTabId = 'tab-watch-btn';
     } else if (screenId === 'quizzes' || screenId === 'quiz') {
-        activeTabId = 'tab-quizzes-btn';
+        activeTabId = 'tab-games-btn';
+    } else if (screenId === 'bible') {
+        activeTabId = 'tab-bible-btn';
     } else if (screenId === 'contests') {
-        activeTabId = 'tab-contests-btn';
-    } else if (screenId === 'settings' || screenId === 'shop' || screenId === 'admin') {
-        activeTabId = 'tab-settings-btn';
+        activeTabId = 'tab-quests-btn';
     }
 
     if (activeTabId) {
@@ -800,18 +947,47 @@ function navigateTo(screenId) {
 }
 
 // Connect navigation event listeners
-const brandLogo = document.querySelector('.header-brand');
-if (brandLogo) {
-    brandLogo.addEventListener('click', () => navigateTo('home'));
-}
 const homeTab = document.getElementById('tab-home-btn');
 if (homeTab) {
     homeTab.addEventListener('click', () => navigateTo('home'));
 }
-document.getElementById('tab-videos-btn').addEventListener('click', () => navigateTo('dashboard'));
-document.getElementById('tab-quizzes-btn').addEventListener('click', () => navigateTo('quizzes'));
-document.getElementById('tab-contests-btn').addEventListener('click', () => navigateTo('contests'));
-document.getElementById('tab-settings-btn').addEventListener('click', () => navigateTo('settings'));
+const gamesTab = document.getElementById('tab-games-btn');
+if (gamesTab) {
+    gamesTab.addEventListener('click', () => navigateTo('quizzes'));
+}
+const bibleTab = document.getElementById('tab-bible-btn');
+if (bibleTab) {
+    bibleTab.addEventListener('click', () => navigateTo('bible'));
+}
+const questsTab = document.getElementById('tab-quests-btn');
+if (questsTab) {
+    questsTab.addEventListener('click', () => navigateTo('contests'));
+}
+const watchTab = document.getElementById('tab-watch-btn');
+if (watchTab) {
+    watchTab.addEventListener('click', () => navigateTo('dashboard'));
+}
+
+// Avatar profile settings hook
+const avatarSettingsBtn = document.getElementById('settings-trigger-btn');
+if (avatarSettingsBtn) {
+    avatarSettingsBtn.addEventListener('click', () => navigateTo('settings'));
+}
+
+// Hamburger menu hook
+const headerMenuBtn = document.getElementById('header-menu-btn');
+if (headerMenuBtn) {
+    headerMenuBtn.addEventListener('click', () => navigateTo('settings'));
+}
+
+// Search button hook
+const headerSearchBtn = document.getElementById('header-search-btn');
+if (headerSearchBtn) {
+    headerSearchBtn.addEventListener('click', () => {
+        navigateTo('dashboard');
+        triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+    });
+}
 
 // Homepage action button hooks
 const startJourneyBtn = document.getElementById('home-start-journey-btn');
@@ -2699,10 +2875,158 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // =====================================================================
+    // BIBLE STORIES READER DATA & CONTROLLERS
+    // =====================================================================
+    const BIBLE_STORIES_DATA = {
+        creation: {
+            title: "The Creation of the World",
+            badge: "Genesis 1",
+            image: "assets/story_creation.png",
+            content: `<p>In the beginning, God created the beautiful heavens and the earth! 🌟</p>` +
+                     `<p>The earth was completely empty and dark. So God said, <strong>"Let there be light!"</strong> And suddenly, bright light filled the darkness! God called the light "Day" and the darkness "Night." That was the very first day! ☀️</p>` +
+                     `<p>On the second day, God created the high blue sky. On the third day, God gathered the waters together to form the deep blue oceans and let the dry land appear. He made green grass, giant trees, and beautiful colorful flowers bloom all over the land! 🌸</p>` +
+                     `<p>On the fourth day, God placed the bright sun in the sky to shine by day, and the glowing moon and sparkling stars to shine at night. On the fifth day, God filled the oceans with swimming fish and giant whales, and made happy birds fly through the sky! 🐠🐦</p>` +
+                     `<p>On the sixth day, God created all kinds of cute animals: bears, rabbits, lions, and elephants. And then, God created something very special—He made human beings in His own image to care for His beautiful world! 👤</p>` +
+                     `<p>On the seventh day, God looked at everything He had made and saw that it was extremely good! So He rested, making the seventh day a special day of peace and rest.</p>`
+        },
+        noah: {
+            title: "Noah's Great Ark",
+            badge: "Genesis 6",
+            image: "assets/story_noah.png",
+            content: `<p>A long time ago, a very kind man named Noah lived on the earth. Noah loved God very much and always did what was right. 👤</p>` +
+                     `<p>One day, God told Noah that a massive rainstorm was coming to cover the earth. God asked Noah to build a giant wooden boat called an Ark! 🚢</p>` +
+                     `<p>Noah trusted God completely. He and his family worked very hard to build the giant Ark, exactly as God instructed. When the Ark was finished, God sent pairs of all kinds of animals from all over the world to Noah: giraffes, elephants, lions, pandas, and tiny birds. They all marched into the Ark two by two! 🦒🐘🐼</p>` +
+                     `<p>Once everyone was safe inside, God shut the heavy door. Rain began to fall heavily for forty days and forty nights! The water rose higher and higher, but the giant Ark floated safely on top of the deep blue waves.</p>` +
+                     `<p>Eventually, the rain stopped and a warm wind dried the land. Noah opened the window and saw green leaves growing. When they walked out onto dry land, God placed a beautiful giant rainbow in the sky as a promise that He would always protect and love His creation! 🌈</p>`
+        },
+        david: {
+            title: "David and Goliath",
+            badge: "1 Samuel 17",
+            image: "assets/story_david.png",
+            content: `<p>Once upon a time, there was a young shepherd boy named David. David spent his days in the green valleys looking after his father's sheep. Although he was small, David was brave and trusted God completely! 🐑</p>` +
+                     `<p>One day, a giant warrior named Goliath came to fight. Goliath was over nine feet tall, wore heavy armor, and carried a massive spear! He shouted at David's people, challenging anyone to fight him. Everyone was terrified of the giant and ran away. 🛡️</p>` +
+                     `<p>But David said, <strong>"I am not afraid! God protected me from lions and bears when guarding my sheep, and He will protect me now!"</strong></p>` +
+                     `<p>David walked down into the valley to face the giant. He did not wear heavy armor. Instead, he only carried his shepherd's staff, a small leather sling, and five smooth stones from the stream. 🪨</p>` +
+                     `<p>Goliath laughed at David because he was so small. But David loaded a smooth stone into his sling, swung it around, and launched it! The stone hit Goliath right in the forehead and the giant fell down to the ground! 🎉</p>` +
+                     `<p>David won the great battle not with size or weapons, but through courage and strong faith in God!</p>`
+        }
+    };
+
+    function setupBibleModal() {
+        const modal = document.getElementById('bible-story-modal');
+        const closeBtn = document.getElementById('close-bible-reader-btn');
+        const completeBtn = document.getElementById('bible-reader-complete-btn');
+
+        if (closeBtn && modal) {
+            closeBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+                triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+            });
+        }
+
+        // Hook read buttons on cards
+        document.querySelectorAll('.read-story-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const storyKey = btn.getAttribute('data-story');
+                openBibleStory(storyKey);
+            });
+        });
+
+        if (completeBtn && modal) {
+            completeBtn.addEventListener('click', () => {
+                const storyKey = completeBtn.getAttribute('data-story');
+                modal.style.display = 'none';
+
+                // Reward points and XP
+                state.incrementCoins(50);
+                state.incrementXP(50);
+
+                triggerConfettiVictoryFX();
+                triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+
+                // Automatically check off next calendar card to increment streak
+                let nextUnlockedIndex = state.streak.completedDays.indexOf(false);
+                if (nextUnlockedIndex !== -1) {
+                    state.streak.completedDays[nextUnlockedIndex] = true;
+                    state.streak.daysCount++;
+                    if (state.streak.daysCount % 7 === 0) {
+                        state.streak.weeksCount++;
+                    }
+                    state.saveStreak();
+                    state.renderStreakCalendar();
+                }
+            });
+        }
+    }
+
+    function openBibleStory(storyKey) {
+        const story = BIBLE_STORIES_DATA[storyKey];
+        if (!story) return;
+
+        const modal = document.getElementById('bible-story-modal');
+        const badge = document.getElementById('bible-reader-badge');
+        const title = document.getElementById('bible-reader-title');
+        const img = document.getElementById('bible-reader-img');
+        const content = document.getElementById('bible-reader-content');
+        const completeBtn = document.getElementById('bible-reader-complete-btn');
+
+        if (badge) badge.textContent = story.badge;
+        if (title) title.textContent = story.title;
+        if (img) img.src = story.image;
+        if (content) {
+            content.innerHTML = story.content;
+        }
+        if (completeBtn) {
+            completeBtn.setAttribute('data-story', storyKey);
+        }
+
+        if (modal) {
+            modal.style.display = 'flex';
+            const scrollable = modal.querySelector('.bible-reader-scrollable');
+            if (scrollable) scrollable.scrollTop = 0;
+            triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+        }
+    }
+
+    // Connect homepage banner action hooks
+    const jesusEntranceCard = document.getElementById('home-jesus-entrance-card');
+    if (jesusEntranceCard) {
+        jesusEntranceCard.addEventListener('click', () => {
+            navigateTo('bible');
+            triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+        });
+    }
+    const findOutHowBtn = document.getElementById('home-find-out-how-btn');
+    if (findOutHowBtn) {
+        findOutHowBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            navigateTo('bible');
+            triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+        });
+    }
+    const homeMailBtn = document.getElementById('home-mail-btn');
+    if (homeMailBtn) {
+        homeMailBtn.addEventListener('click', () => {
+            triggerConfettiVictoryFX();
+            triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+            alert("✉️ You have 1 unread message: 'Welcome to Super Kid Bible Adventures! Keep exploring to unlock amazing gear for Gizmo!'");
+        });
+    }
+
     // Render initial statistics
     document.getElementById('star-coin-label').textContent = state.user.star_coins;
-    document.getElementById('display-name-label').textContent = state.user.display_name;
     
+    // Render initial Level and XP progress bar
+    state.updateXPHeader();
+    
+    // Setup and render Bible Streak calendar
+    state.renderStreakCalendar();
+    state.setupStreakCalendarInteractivity();
+    
+    // Setup Bible story modal events
+    setupBibleModal();
+
     // Equip saved accessories
     renderEquippedGear();
     
