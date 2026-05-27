@@ -2016,13 +2016,13 @@ body, html {
 
 .settings-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
-    padding: 40px;
-    max-width: 900px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    padding: 30px;
+    max-width: 1000px;
     margin: auto;
     flex-grow: 1;
-    align-items: center;
+    align-items: stretch;
 }
 
 .settings-card {

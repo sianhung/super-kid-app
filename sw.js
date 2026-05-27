@@ -1,4 +1,4 @@
-const CACHE_NAME = 'super-kid-v11';
+const CACHE_NAME = 'super-kid-v12';
 const ASSETS = [
   './',
   './index.html',

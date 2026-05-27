@@ -3317,3 +3317,31 @@ document.addEventListener('DOMContentLoaded', () => {
     navigateTo('home');
 });
 
+// PWA Install Prompt handling
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const pwaBtn = document.getElementById('pwa-install-btn');
+    if (pwaBtn) {
+        pwaBtn.style.boxShadow = '0 0 15px rgba(0, 240, 255, 0.8)';
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const pwaBtn = document.getElementById('pwa-install-btn');
+    if (pwaBtn) {
+        pwaBtn.addEventListener('click', async () => {
+            triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+            if (!deferredPrompt) {
+                alert('💡 PWA installation is not supported by your current browser, or it has already been installed.\n\n🍏 On iOS (Safari):\nTap the Share button 📤 and select "Add to Home Screen" ➕\n\n🤖 On Android (Chrome):\nTap the three dots icon ⫶ and select "Install app" or "Add to Home Screen".');
+                return;
+            }
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User response to install: ${outcome}`);
+            deferredPrompt = null;
+        });
+    }
+});
+
