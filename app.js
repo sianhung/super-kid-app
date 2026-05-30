@@ -9,17 +9,19 @@ const MOCK_EPISODES = [
         id: 'e1c12e87-0b1a-48d6-848e-653ea956bc01',
         title: 'ဖန်ဆင်းခြင်းအစ',
         youtube_video_id: 'R9K2Sj76L38',
-        thumbnail_url: 'assets/jesus_teaching.png',
+        thumbnail_url: 'assets/episode1.png',
         order_index: 1,
-        description: 'Travel with Gizmo through the magical bubble portal and learn about the miraculous power of God\'s love!'
+        price: 0,
+        description: "Travel with Gizmo the magical bubble portal and learn the miraculous power of God's love!"
     },
     {
         id: 'e2c23f88-1c2b-49e7-959f-764fb067cd02',
         title: 'ပေးဆပ်ခြင်းရဲ့ အကောင်းဆုံးလက်ဆောင်',
         youtube_video_id: 'JtV_n6dMh_s',
-        thumbnail_url: 'assets/story_creation.png',
+        thumbnail_url: 'assets/episode2.png',
         order_index: 2,
-        description: 'Chase the beautiful rainbow jellyfish across the cosmic ocean and discover why sharing brings joy!'
+        price: 0,
+        description: "Chase the beautiful rainbow jellyfish as the cosmic ocean and discover why sharing brings joy!"
     },
     {
         id: 'e3c34a99-2d3c-4bf8-a6af-875fc178de03',
@@ -27,6 +29,7 @@ const MOCK_EPISODES = [
         youtube_video_id: 'rC78Q7kYdDk',
         thumbnail_url: 'assets/episode3.png',
         order_index: 3,
+        price: 150,
         description: 'Solve the mysterious floating candies phenomenon while uncovering the secrets of kind hearts and sweet friendship!'
     },
     {
@@ -35,6 +38,7 @@ const MOCK_EPISODES = [
         youtube_video_id: '01QkS49n6_0',
         thumbnail_url: 'assets/episode4.png',
         order_index: 4,
+        price: 300,
         description: 'Join Gizmo and Moses as they stand before Pharaoh, witness the ten plagues, and escape across the parted Red Sea!'
     }
 ];
@@ -162,32 +166,139 @@ class AppState {
     }
 
     loadOrCreateState() {
-        const storedUser = localStorage.getItem('superkid_user');
-        const storedOwned = localStorage.getItem('superkid_owned');
+        // 1. Initialize user database if not present
+        let usersDb = [];
+        const storedDb = localStorage.getItem('superkid_users_db');
+        if (storedDb) {
+            try {
+                usersDb = JSON.parse(storedDb);
+            } catch(e) {
+                usersDb = [];
+            }
+        }
         
-        if (storedUser) {
-            this.user = JSON.parse(storedUser);
-            if (this.user.xp === undefined) this.user.xp = 0;
-            if (this.user.level === undefined) this.user.level = 1;
-        } else {
-            this.user = {
-                id: 'd8c2278e-6d1a-4c28-98e3-0d3a776c5b96',
-                display_name: 'Leo Starry',
-                star_coins: 0,
+        if (!usersDb || usersDb.length === 0) {
+            // Seed default simulated user accounts
+            usersDb = [
+                {
+                    email: 'jsianhung@gmail.com',
+                    display_name: 'Jsianhung',
+                    star_coins: 1000,
+                    xp: 50,
+                    level: 5,
+                    avatar_custom_data: { equipped_gear: null },
+                    unlocked_index: 4,
+                    is_premium: true,
+                    is_admin: true,
+                    is_banned: false,
+                    ownedItems: []
+                },
+                {
+                    email: 'leo@gmail.com',
+                    display_name: 'Leo Starry',
+                    star_coins: 100,
+                    xp: 25,
+                    level: 1,
+                    avatar_custom_data: { equipped_gear: null },
+                    unlocked_index: 1,
+                    is_premium: false,
+                    is_admin: false,
+                    is_banned: false,
+                    ownedItems: []
+                },
+                {
+                    email: 'gizmo_fan@gmail.com',
+                    display_name: 'GizmoFan',
+                    star_coins: 300,
+                    xp: 95,
+                    level: 3,
+                    avatar_custom_data: { equipped_gear: null },
+                    unlocked_index: 2,
+                    is_premium: true,
+                    is_admin: false,
+                    is_banned: false,
+                    ownedItems: []
+                },
+                {
+                    email: 'test_banned@gmail.com',
+                    display_name: 'NaughtyUser',
+                    star_coins: 0,
+                    xp: 10,
+                    level: 1,
+                    avatar_custom_data: { equipped_gear: null },
+                    unlocked_index: 1,
+                    is_premium: false,
+                    is_admin: false,
+                    is_banned: true,
+                    ownedItems: []
+                }
+            ];
+            localStorage.setItem('superkid_users_db', JSON.stringify(usersDb));
+        }
+        
+        // 2. Fetch logged in user email
+        let loggedInEmail = localStorage.getItem('appUserEmail');
+        
+        // Force logout if banned
+        if (loggedInEmail) {
+            const userRecord = usersDb.find(u => u.email.toLowerCase() === loggedInEmail.toLowerCase());
+            if (userRecord && userRecord.is_banned) {
+                localStorage.removeItem('appUserLoggedIn');
+                localStorage.removeItem('appUserEmail');
+                loggedInEmail = null;
+                alert("🚫 Your account has been banned by the Administrator.");
+                location.reload();
+                return;
+            }
+        }
+        
+        // If not logged in at all, auto-login 'leo@gmail.com' as fallback guest
+        if (!loggedInEmail) {
+            loggedInEmail = 'leo@gmail.com';
+            localStorage.setItem('appUserEmail', loggedInEmail);
+            localStorage.setItem('appUserLoggedIn', 'true');
+        }
+        
+        // 3. Find or register user profile record
+        let userRecord = usersDb.find(u => u.email.toLowerCase() === loggedInEmail.toLowerCase());
+        if (!userRecord) {
+            const rawName = loggedInEmail.split('@')[0];
+            const formattedName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+            userRecord = {
+                email: loggedInEmail,
+                display_name: formattedName,
+                star_coins: 100,
                 xp: 0,
                 level: 1,
                 avatar_custom_data: { equipped_gear: null },
-                unlocked_index: 1 // Start at episode index 1
+                unlocked_index: 1,
+                is_premium: false,
+                is_admin: loggedInEmail.toLowerCase() === 'jsianhung@gmail.com',
+                is_banned: false,
+                ownedItems: []
             };
-            this.saveUser();
+            usersDb.push(userRecord);
+            localStorage.setItem('superkid_users_db', JSON.stringify(usersDb));
         }
-
-        if (storedOwned) {
-            this.ownedItems = JSON.parse(storedOwned);
-        } else {
-            this.ownedItems = [];
-            this.saveOwned();
-        }
+        
+        // 4. Set state properties
+        this.user = {
+            id: userRecord.email,
+            display_name: userRecord.display_name,
+            star_coins: userRecord.star_coins,
+            xp: userRecord.xp,
+            level: userRecord.level,
+            avatar_custom_data: userRecord.avatar_custom_data,
+            unlocked_index: userRecord.unlocked_index,
+            is_premium: !!userRecord.is_premium,
+            is_admin: userRecord.email.toLowerCase() === 'jsianhung@gmail.com',
+            is_banned: !!userRecord.is_banned
+        };
+        this.ownedItems = userRecord.ownedItems || [];
+        
+        // Sync local storage keys for legacy compatibility
+        localStorage.setItem('superkid_user', JSON.stringify(this.user));
+        localStorage.setItem('superkid_owned', JSON.stringify(this.ownedItems));
 
         const storedEpisodes = localStorage.getItem('superkid_episodes');
         if (storedEpisodes) {
@@ -303,10 +414,40 @@ class AppState {
 
     saveUser() {
         localStorage.setItem('superkid_user', JSON.stringify(this.user));
+        this.syncUserToDb();
     }
 
     saveOwned() {
         localStorage.setItem('superkid_owned', JSON.stringify(this.ownedItems));
+        this.syncUserToDb();
+    }
+
+    syncUserToDb() {
+        const loggedInEmail = localStorage.getItem('appUserEmail');
+        if (!loggedInEmail) return;
+        
+        let usersDb = [];
+        try {
+            usersDb = JSON.parse(localStorage.getItem('superkid_users_db') || '[]');
+        } catch(e) {
+            usersDb = [];
+        }
+        
+        let recordIndex = usersDb.findIndex(u => u.email.toLowerCase() === loggedInEmail.toLowerCase());
+        if (recordIndex !== -1) {
+            usersDb[recordIndex].display_name = this.user.display_name;
+            usersDb[recordIndex].star_coins = this.user.star_coins;
+            usersDb[recordIndex].xp = this.user.xp;
+            usersDb[recordIndex].level = this.user.level;
+            usersDb[recordIndex].avatar_custom_data = this.user.avatar_custom_data;
+            usersDb[recordIndex].unlocked_index = this.user.unlocked_index;
+            usersDb[recordIndex].is_premium = !!this.user.is_premium;
+            usersDb[recordIndex].is_admin = loggedInEmail.toLowerCase() === 'jsianhung@gmail.com';
+            usersDb[recordIndex].is_banned = !!this.user.is_banned;
+            usersDb[recordIndex].ownedItems = this.ownedItems;
+            
+            localStorage.setItem('superkid_users_db', JSON.stringify(usersDb));
+        }
     }
 
     saveSubmissions() {
@@ -857,7 +998,7 @@ function updateActiveTabs(screenId) {
         activeTabId = 'tab-home-btn';
     } else if (screenId === 'dashboard' || screenId === 'video') {
         activeTabId = 'tab-watch-btn';
-    } else if (screenId === 'quizzes' || screenId === 'quiz') {
+    } else if (screenId === 'games' || screenId === 'quizzes' || screenId === 'quiz') {
         activeTabId = 'tab-games-btn';
     } else if (screenId === 'bible') {
         activeTabId = 'tab-bible-btn';
@@ -879,11 +1020,13 @@ const screenOrder = {
     'home': 0,
     'dashboard': 1,
     'video': 1.5,
-    'quizzes': 2,
-    'quiz': 2.5,
+    'games': 2,
+    'quizzes': 2.1,
+    'quiz': 2.2,
     'contests': 3,
     'settings': 4,
     'shop': 4.5,
+    'parent': 4.7,
     'admin': 4.8
 };
 
@@ -905,6 +1048,11 @@ function triggerInteriorAnimations(screenId) {
                 applyCardTilts();
                 setupCarouselControls();
             }}
+        );
+    } else if (screenId === 'games') {
+        gsap.fromTo('.games-arcade-card', 
+            { y: 60, opacity: 0, scale: 0.9, rotateY: 10 }, 
+            { y: 0, opacity: 1, scale: 1, rotateY: 0, duration: 0.55, stagger: 0.1, ease: "back.out(1.15)" }
         );
     } else if (screenId === 'quizzes') {
         gsap.fromTo('.quiz-select-card', 
@@ -1050,15 +1198,73 @@ function navigateTo(screenId) {
     // Refresh dashboard contents or grids based on tab routing
     if (screenId === 'dashboard') {
         renderDashboard();
+    } else if (screenId === 'games') {
+        renderGamesHub();
     } else if (screenId === 'quizzes') {
         renderQuizzesSelect();
     } else if (screenId === 'contests') {
         renderContests();
     } else if (screenId === 'shop') {
         renderShop();
+    } else if (screenId === 'parent') {
+        if (window._newRenderAdminView) {
+            window._newRenderAdminView();
+        } else {
+            renderAdminView();
+        }
     } else if (screenId === 'admin') {
+        const appUserEmail = localStorage.getItem('appUserEmail') || '';
+        if (appUserEmail.toLowerCase() !== 'jsianhung@gmail.com') {
+            if (confirm('🔒 ADMIN MAINFRAME DECRYPTION REQUIRED\n\nOnly the owner (jsianhung@gmail.com) is permitted to access the Admin Control Center.\n\nWould you like to log in as the Administrator profile now?')) {
+                // Log in as jsianhung@gmail.com
+                localStorage.setItem('appUserEmail', 'jsianhung@gmail.com');
+                localStorage.setItem('appUserLoggedIn', 'true');
+                
+                // Fetch/register user record
+                let usersDb = [];
+                try {
+                    usersDb = JSON.parse(localStorage.getItem('superkid_users_db') || '[]');
+                } catch(e) {}
+                
+                let userRecord = usersDb.find(u => u.email.toLowerCase() === 'jsianhung@gmail.com');
+                if (!userRecord) {
+                    userRecord = {
+                        email: 'jsianhung@gmail.com',
+                        display_name: 'Jsianhung',
+                        star_coins: 1000,
+                        xp: 50,
+                        level: 5,
+                        avatar_custom_data: { equipped_gear: null },
+                        unlocked_index: 4,
+                        is_premium: true,
+                        is_admin: true,
+                        is_banned: false,
+                        ownedItems: []
+                    };
+                    usersDb.push(userRecord);
+                    localStorage.setItem('superkid_users_db', JSON.stringify(usersDb));
+                }
+                
+                // Set active user state and reload
+                localStorage.setItem('superkid_user', JSON.stringify(userRecord));
+                location.reload();
+                return;
+            }
+            setTimeout(() => { navigateTo('dashboard'); }, 50);
+            return;
+        }
+        
+        // Grant admin status for this session
+        state.isAdminLoggedIn = true;
+        state.saveAdminAuth();
+        
         renderAdminView();
+    } else if (screenId === 'home') {
+        if (typeof updateHomeV3Stats === 'function') updateHomeV3Stats();
+        if (typeof updateGreetingBanner === 'function') updateGreetingBanner();
     }
+
+
 
     updateActiveTabs(screenId);
 
@@ -1109,7 +1315,7 @@ if (homeTab) {
 }
 const gamesTab = document.getElementById('tab-games-btn');
 if (gamesTab) {
-    gamesTab.addEventListener('click', () => navigateTo('quizzes'));
+    gamesTab.addEventListener('click', () => navigateTo('games'));
 }
 const bibleTab = document.getElementById('tab-bible-btn');
 if (bibleTab) {
@@ -1124,17 +1330,323 @@ if (watchTab) {
     watchTab.addEventListener('click', () => navigateTo('dashboard'));
 }
 
-// Avatar profile settings hook
-const avatarSettingsBtn = document.getElementById('settings-trigger-btn');
-if (avatarSettingsBtn) {
-    avatarSettingsBtn.addEventListener('click', () => navigateTo('settings'));
-}
+// ── Settings Drawer controller ──────────────────────────
+(function setupUnifiedDrawer() {
+    // Helper to open master settings drawer
+    function openMasterDrawer() {
+        if (typeof openSettingsDrawer === 'function') {
+            openSettingsDrawer();
+            if (typeof triggerBubblePopFX === 'function') {
+                triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+            }
+        }
+    }
 
-// Hamburger menu hook
-const headerMenuBtn = document.getElementById('header-menu-btn');
-if (headerMenuBtn) {
-    headerMenuBtn.addEventListener('click', () => navigateTo('settings'));
-}
+    // Bind Avatar Profile Button
+    const avatarBtn = document.getElementById('settings-trigger-btn');
+    if (avatarBtn) {
+        avatarBtn.addEventListener('click', openMasterDrawer);
+    }
+
+    // Bind Hamburger Button
+    const menuBtn = document.getElementById('header-menu-btn');
+    if (menuBtn) {
+        menuBtn.addEventListener('click', openMasterDrawer);
+    }
+
+    // Bind Log Out Button in Master Drawer
+    const logoutBtn = document.getElementById('drawer-logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            if (typeof closeSettingsDrawer === 'function') closeSettingsDrawer();
+            setTimeout(() => {
+                localStorage.removeItem('appUserLoggedIn');
+                localStorage.removeItem('appUserEmail');
+                localStorage.removeItem('superkid_user');
+                localStorage.removeItem('superkid_owned');
+                location.reload();
+            }, 300);
+        });
+    }
+})();
+
+// ── App-Wide Login Controller ──────────────────────────
+(function setupAppWideLogin() {
+    const overlay = document.getElementById('app-login-overlay');
+    const loginCard = document.getElementById('app-login-card');
+    const signupCard = document.getElementById('app-signup-card');
+    
+    const loginForm = document.getElementById('app-login-form');
+    const signupForm = document.getElementById('app-signup-form');
+    
+    const loginCloseBtn = document.getElementById('login-close-btn');
+    const signupCloseBtn = document.getElementById('signup-close-btn');
+    
+    // Login password triggers
+    const loginPassInput = document.getElementById('login-pass');
+    const loginShowBtn = document.getElementById('login-pass-show-btn');
+    const loginErrorDiv = document.getElementById('app-login-error');
+    
+    // Signup password triggers
+    const signupPassInput = document.getElementById('signup-pass');
+    const signupPassShowBtn = document.getElementById('signup-pass-show-btn');
+    const signupPassConfirm = document.getElementById('signup-pass-confirm');
+    const signupPassConfirmShowBtn = document.getElementById('signup-pass-confirm-show-btn');
+    const signupErrorDiv = document.getElementById('app-signup-error');
+    
+    // Toggles
+    const createAccountLink = document.getElementById('login-create-account');
+    const backToLoginLink = document.getElementById('signup-back-to-login');
+    
+    if (!overlay || !loginCard || !signupCard) return;
+
+    // Check login state
+    const isLoggedIn = localStorage.getItem('appUserLoggedIn') === 'true';
+    if (!isLoggedIn) {
+        overlay.style.display = 'flex';
+        gsap.fromTo(loginCard, 
+            { scale: 0.9, opacity: 0 }, 
+            { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.7)' }
+        );
+    } else {
+        overlay.style.display = 'none';
+    }
+
+    // Toggle views: Login -> SignUp
+    if (createAccountLink) {
+        createAccountLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            gsap.to(loginCard, {
+                scale: 0.95,
+                opacity: 0,
+                duration: 0.25,
+                onComplete: () => {
+                    loginCard.style.display = 'none';
+                    signupCard.style.display = 'block';
+                    gsap.fromTo(signupCard,
+                        { scale: 0.95, opacity: 0 },
+                        { scale: 1, opacity: 1, duration: 0.3, ease: 'power2.out' }
+                    );
+                }
+            });
+        });
+    }
+
+    // Toggle views: SignUp -> Login
+    if (backToLoginLink) {
+        backToLoginLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            gsap.to(signupCard, {
+                scale: 0.95,
+                opacity: 0,
+                duration: 0.25,
+                onComplete: () => {
+                    signupCard.style.display = 'none';
+                    loginCard.style.display = 'block';
+                    gsap.fromTo(loginCard,
+                        { scale: 0.95, opacity: 0 },
+                        { scale: 1, opacity: 1, duration: 0.3, ease: 'power2.out' }
+                    );
+                }
+            });
+        });
+    }
+
+    // Toggle Login Password Visibility
+    if (loginShowBtn && loginPassInput) {
+        loginShowBtn.addEventListener('click', () => {
+            if (loginPassInput.type === 'password') {
+                loginPassInput.type = 'text';
+                loginShowBtn.textContent = 'HIDE';
+            } else {
+                loginPassInput.type = 'password';
+                loginShowBtn.textContent = 'SHOW';
+            }
+        });
+    }
+
+    // Toggle Signup Password Visibility
+    if (signupPassShowBtn && signupPassInput) {
+        signupPassShowBtn.addEventListener('click', () => {
+            if (signupPassInput.type === 'password') {
+                signupPassInput.type = 'text';
+                signupPassShowBtn.textContent = 'HIDE';
+            } else {
+                signupPassInput.type = 'password';
+                signupPassShowBtn.textContent = 'SHOW';
+            }
+        });
+    }
+
+    // Toggle Signup Confirm Password Visibility
+    if (signupPassConfirmShowBtn && signupPassConfirm) {
+        signupPassConfirmShowBtn.addEventListener('click', () => {
+            if (signupPassConfirm.type === 'password') {
+                signupPassConfirm.type = 'text';
+                signupPassConfirmShowBtn.textContent = 'HIDE';
+            } else {
+                signupPassConfirm.type = 'password';
+                signupPassConfirmShowBtn.textContent = 'SHOW';
+            }
+        });
+    }
+
+    // Common dynamic name greeting trigger function
+    function doSuccessLogin(email) {
+        localStorage.setItem('appUserLoggedIn', 'true');
+        localStorage.setItem('appUserEmail', email);
+        
+        const rawName = email.split('@')[0];
+        const formattedName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+        if (typeof state !== 'undefined') {
+            state.user.display_name = formattedName;
+            state.saveUser();
+        }
+
+        // Animate overlay away
+        const activeCard = signupCard.style.display !== 'none' ? signupCard : loginCard;
+        gsap.to(activeCard, {
+            scale: 0.95,
+            opacity: 0,
+            duration: 0.3,
+            ease: 'power2.in',
+            onComplete: () => {
+                gsap.to(overlay, {
+                    opacity: 0,
+                    duration: 0.25,
+                    onComplete: () => {
+                        overlay.style.display = 'none';
+                        overlay.style.opacity = 1;
+                        activeCard.style.opacity = 1;
+                        activeCard.style.transform = 'none';
+                        
+                        // Bubble pop effect
+                        if (typeof triggerBubblePopFX === 'function') {
+                            triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+                        }
+                        
+                        // Reload page or refresh greet
+                        location.reload();
+                    }
+                });
+            }
+        });
+    }
+
+    // Handle Login Form Submit
+    if (loginForm) {
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value.trim();
+            const password = loginPassInput.value.trim();
+
+            if (!email || !password) {
+                loginErrorDiv.textContent = 'Please fill out all required fields.';
+                loginErrorDiv.style.display = 'block';
+                return;
+            }
+
+            // Check if banned in database
+            let usersDb = [];
+            try {
+                usersDb = JSON.parse(localStorage.getItem('superkid_users_db') || '[]');
+            } catch(e) {}
+            
+            const record = usersDb.find(u => u.email.toLowerCase() === email.toLowerCase());
+            if (record && record.is_banned) {
+                loginErrorDiv.innerHTML = '🚫 <strong>ACCESS DENIED:</strong> This account has been banned by the Administrator.';
+                loginErrorDiv.style.display = 'block';
+                
+                // Shake card animation
+                gsap.to(loginCard, {
+                    x: 10, duration: 0.05, yoyo: true, repeat: 5,
+                    onComplete: () => { gsap.set(loginCard, { x: 0 }); }
+                });
+                return;
+            }
+
+            loginErrorDiv.style.display = 'none';
+            doSuccessLogin(email);
+        });
+    }
+
+    // Handle Signup Form Submit
+    if (signupForm) {
+        signupForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signup-email').value.trim();
+            const password = signupPassInput.value.trim();
+            const confirmPass = signupPassConfirm.value.trim();
+
+            if (!email || !password || !confirmPass) {
+                signupErrorDiv.textContent = 'Please fill out all required fields.';
+                signupErrorDiv.style.display = 'block';
+                return;
+            }
+
+            // Check if banned in database
+            let usersDb = [];
+            try {
+                usersDb = JSON.parse(localStorage.getItem('superkid_users_db') || '[]');
+            } catch(e) {}
+            
+            const record = usersDb.find(u => u.email.toLowerCase() === email.toLowerCase());
+            if (record && record.is_banned) {
+                signupErrorDiv.innerHTML = '🚫 This email address is banned from registration.';
+                signupErrorDiv.style.display = 'block';
+                return;
+            }
+
+            if (password.length < 6) {
+                signupErrorDiv.textContent = 'Password must be at least 6 characters.';
+                signupErrorDiv.style.display = 'block';
+                return;
+            }
+
+            if (password !== confirmPass) {
+                signupErrorDiv.textContent = 'Passwords do not match.';
+                signupErrorDiv.style.display = 'block';
+                return;
+            }
+
+            signupErrorDiv.style.display = 'none';
+            doSuccessLogin(email);
+        });
+    }
+
+    // Close buttons helper
+    function handleCloseAttempt(cardElement, errorElement) {
+        const currentlyLoggedIn = localStorage.getItem('appUserLoggedIn') === 'true';
+        if (currentlyLoggedIn) {
+            overlay.style.display = 'none';
+        } else {
+            // Shake card animation
+            gsap.to(cardElement, {
+                x: 10,
+                duration: 0.05,
+                yoyo: true,
+                repeat: 5,
+                onComplete: () => {
+                    gsap.set(cardElement, { x: 0 });
+                }
+            });
+            errorElement.textContent = 'Please log in or create an account to start your Bible adventures!';
+            errorElement.style.display = 'block';
+        }
+    }
+
+    if (loginCloseBtn) {
+        loginCloseBtn.addEventListener('click', () => {
+            handleCloseAttempt(loginCard, loginErrorDiv);
+        });
+    }
+
+    if (signupCloseBtn) {
+        signupCloseBtn.addEventListener('click', () => {
+            handleCloseAttempt(signupCard, signupErrorDiv);
+        });
+    }
+})();
 
 // Search button hook
 const headerSearchBtn = document.getElementById('header-search-btn');
@@ -1183,23 +1695,27 @@ document.querySelectorAll('.back-settings-btn').forEach(btn => {
 const subtabContentBtn = document.getElementById('admin-subtab-content-btn');
 const subtabManageBtn = document.getElementById('admin-subtab-manage-btn');
 const subtabSubmissionsBtn = document.getElementById('admin-subtab-submissions-btn');
+const subtabUsersBtn = document.getElementById('admin-subtab-users-btn');
+
 const panelContent = document.getElementById('admin-panel-content');
 const panelManage = document.getElementById('admin-panel-manage');
 const panelSubmissions = document.getElementById('admin-panel-submissions');
+const panelUsers = document.getElementById('admin-panel-users');
 
 function resetAdminSubtabButtons() {
-    [subtabContentBtn, subtabManageBtn, subtabSubmissionsBtn].forEach(btn => {
+    [subtabContentBtn, subtabManageBtn, subtabSubmissionsBtn, subtabUsersBtn].forEach(btn => {
         if (btn) btn.classList.remove('active');
     });
 }
 
-if (subtabContentBtn && subtabManageBtn && subtabSubmissionsBtn && panelContent && panelManage && panelSubmissions) {
+if (subtabContentBtn && subtabManageBtn && subtabSubmissionsBtn && subtabUsersBtn && panelContent && panelManage && panelSubmissions && panelUsers) {
     subtabContentBtn.addEventListener('click', () => {
         resetAdminSubtabButtons();
         subtabContentBtn.classList.add('active');
         panelContent.style.display = 'block';
         panelManage.style.display = 'none';
         panelSubmissions.style.display = 'none';
+        panelUsers.style.display = 'none';
         renderAdminQuizSelect();
     });
     
@@ -1209,6 +1725,7 @@ if (subtabContentBtn && subtabManageBtn && subtabSubmissionsBtn && panelContent 
         panelContent.style.display = 'none';
         panelManage.style.display = 'block';
         panelSubmissions.style.display = 'none';
+        panelUsers.style.display = 'none';
         renderAdminManageView();
     });
     
@@ -1218,8 +1735,245 @@ if (subtabContentBtn && subtabManageBtn && subtabSubmissionsBtn && panelContent 
         panelContent.style.display = 'none';
         panelManage.style.display = 'none';
         panelSubmissions.style.display = 'block';
+        panelUsers.style.display = 'none';
         renderAdminSubmissions();
     });
+
+    subtabUsersBtn.addEventListener('click', () => {
+        resetAdminSubtabButtons();
+        subtabUsersBtn.classList.add('active');
+        panelContent.style.display = 'none';
+        panelManage.style.display = 'none';
+        panelSubmissions.style.display = 'none';
+        panelUsers.style.display = 'block';
+        renderAdminUsers();
+    });
+
+    // Search input listener
+    const userSearchInput = document.getElementById('admin-users-search');
+    if (userSearchInput) {
+        userSearchInput.addEventListener('input', () => {
+            renderAdminUsers();
+        });
+    }
+}
+
+// User management control methods
+function forceUserLogout() {
+    localStorage.removeItem('appUserLoggedIn');
+    localStorage.removeItem('appUserEmail');
+    localStorage.removeItem('superkid_user');
+    localStorage.removeItem('superkid_owned');
+    location.reload();
+}
+
+function renderAdminUsers() {
+    const tbody = document.getElementById('admin-users-tbody');
+    if (!tbody) return;
+
+    let db = [];
+    try {
+        db = JSON.parse(localStorage.getItem('superkid_users_db')) || [];
+    } catch(e) {
+        console.error(e);
+    }
+
+    const searchQuery = (document.getElementById('admin-users-search')?.value || '').toLowerCase().trim();
+    tbody.innerHTML = '';
+
+    const filteredUsers = db.filter(u => {
+        const name = (u.display_name || '').toLowerCase();
+        const email = (u.email || '').toLowerCase();
+        return name.includes(searchQuery) || email.includes(searchQuery);
+    });
+
+    if (filteredUsers.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="empty-ledger-row">👥 NO USERS FOUND MATCHING CRITERIA.</td>
+            </tr>
+        `;
+        return;
+    }
+
+    filteredUsers.forEach(u => {
+        const tr = document.createElement('tr');
+        
+        let roleBadge = '<span class="status-badge standard-badge">User</span>';
+        if (u.email.toLowerCase() === 'jsianhung@gmail.com') {
+            roleBadge = '<span class="status-badge premium-badge">👑 Owner</span>';
+        } else if (u.is_admin) {
+            roleBadge = '<span class="status-badge premium-badge">🛡️ Admin</span>';
+        }
+
+        const premiumBadge = u.is_premium 
+            ? '<span class="status-badge premium-badge">✨ Premium</span>' 
+            : '<span class="status-badge standard-badge">Standard</span>';
+
+        const statusBadge = u.is_banned 
+            ? '<span class="status-badge banned">Banned</span>' 
+            : '<span class="status-badge active-user">Active</span>';
+
+        let actionButtons = '';
+        if (u.email.toLowerCase() !== 'jsianhung@gmail.com') {
+            const premiumText = u.is_premium ? 'Remove Premium' : 'Give Premium';
+            actionButtons += `<button class="sb-btn-cyber-action sb-btn-cyber-role toggle-prem-btn" data-email="${u.email}">${premiumText}</button>`;
+
+            const roleText = u.is_admin ? 'Demote User' : 'Make Admin';
+            actionButtons += `<button class="sb-btn-cyber-action sb-btn-cyber-role toggle-role-btn" data-email="${u.email}">${roleText}</button>`;
+
+            const banText = u.is_banned ? 'Unban' : 'Ban';
+            const banClass = u.is_banned ? 'sb-btn-cyber-unban' : 'sb-btn-cyber-ban';
+            actionButtons += `<button class="sb-btn-cyber-action ${banClass} toggle-ban-btn" data-email="${u.email}">${banText}</button>`;
+
+            actionButtons += `<button class="sb-btn-cyber-action sb-btn-cyber-delete delete-user-btn" data-email="${u.email}">Delete</button>`;
+        } else {
+            actionButtons = `<span style="font-size: 0.75rem; color: rgba(255,255,255,0.4)">Owner (Protected)</span>`;
+        }
+
+        tr.innerHTML = `
+            <td>
+                <div class="user-cell-meta">
+                    <strong>${u.display_name || 'Anonymous Kid'}</strong>
+                    <span class="user-cell-email">${u.email}</span>
+                </div>
+            </td>
+            <td>${roleBadge}</td>
+            <td>${premiumBadge}</td>
+            <td>
+                <span class="ledger-reward">🪙 ${u.star_coins || 0}</span><br>
+                <span style="font-size: 0.72rem; color: rgba(255,255,255,0.5)">XP: ${u.xp || 0} (Lvl ${u.level || 1})</span>
+            </td>
+            <td>${statusBadge}</td>
+            <td>
+                <div class="action-buttons-wrap" style="flex-wrap: wrap; justify-content: flex-start;">
+                    ${actionButtons}
+                </div>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('.toggle-prem-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const email = btn.getAttribute('data-email');
+            toggleUserPremium(email);
+        });
+    });
+
+    tbody.querySelectorAll('.toggle-role-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const email = btn.getAttribute('data-email');
+            toggleUserAdmin(email);
+        });
+    });
+
+    tbody.querySelectorAll('.toggle-ban-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const email = btn.getAttribute('data-email');
+            toggleUserBan(email);
+        });
+    });
+
+    tbody.querySelectorAll('.delete-user-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const email = btn.getAttribute('data-email');
+            deleteUserAccount(email);
+        });
+    });
+}
+
+function toggleUserPremium(email) {
+    let db = [];
+    try {
+        db = JSON.parse(localStorage.getItem('superkid_users_db')) || [];
+    } catch(e) {
+        console.error(e);
+    }
+    const user = db.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (user) {
+        user.is_premium = !user.is_premium;
+        localStorage.setItem('superkid_users_db', JSON.stringify(db));
+        
+        if (state.user && state.user.email.toLowerCase() === email.toLowerCase()) {
+            state.user.is_premium = user.is_premium;
+            state.saveState();
+        }
+        
+        renderAdminUsers();
+        renderDashboard();
+    }
+}
+
+function toggleUserAdmin(email) {
+    let db = [];
+    try {
+        db = JSON.parse(localStorage.getItem('superkid_users_db')) || [];
+    } catch(e) {
+        console.error(e);
+    }
+    const user = db.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (user) {
+        user.is_admin = !user.is_admin;
+        localStorage.setItem('superkid_users_db', JSON.stringify(db));
+        
+        if (state.user && state.user.email.toLowerCase() === email.toLowerCase()) {
+            state.user.is_admin = user.is_admin;
+            state.saveState();
+            if (!user.is_admin) {
+                location.reload();
+                return;
+            }
+        }
+        
+        renderAdminUsers();
+    }
+}
+
+function toggleUserBan(email) {
+    let db = [];
+    try {
+        db = JSON.parse(localStorage.getItem('superkid_users_db')) || [];
+    } catch(e) {
+        console.error(e);
+    }
+    const user = db.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (user) {
+        user.is_banned = !user.is_banned;
+        localStorage.setItem('superkid_users_db', JSON.stringify(db));
+        
+        if (state.user && state.user.email.toLowerCase() === email.toLowerCase()) {
+            forceUserLogout();
+            return;
+        }
+        
+        renderAdminUsers();
+    }
+}
+
+function deleteUserAccount(email) {
+    const isConfirm = confirm(`⚠️ Are you sure you want to delete the user account for ${email}? This action is permanent!`);
+    if (!isConfirm) return;
+    
+    let db = [];
+    try {
+        db = JSON.parse(localStorage.getItem('superkid_users_db')) || [];
+    } catch(e) {
+        console.error(e);
+    }
+    
+    const index = db.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
+    if (index !== -1) {
+        db.splice(index, 1);
+        localStorage.setItem('superkid_users_db', JSON.stringify(db));
+        
+        if (state.user && state.user.email.toLowerCase() === email.toLowerCase()) {
+            forceUserLogout();
+            return;
+        }
+        
+        renderAdminUsers();
+    }
 }
 
 // --- 5. MASCOT DRESSING & RENDERER ---
@@ -1250,32 +2004,134 @@ function renderDashboard() {
     
     container.innerHTML = '';
     
+    // Always refresh coin counter display
+    const starCoinLabel = document.getElementById('star-coin-label');
+    if (starCoinLabel) {
+        starCoinLabel.textContent = state.user.star_coins || 0;
+    }
+    const drawerCoinsVal = document.getElementById('drawer-coins-val');
+    if (drawerCoinsVal) {
+        drawerCoinsVal.textContent = state.user.star_coins || 0;
+    }
+    
     state.episodes.forEach(episode => {
-        const isLocked = episode.order_index > state.user.unlocked_index;
+        const isPremiumUser = !!state.user.is_premium;
+        const isPurchased = (state.user.purchased_episodes || []).includes(episode.id);
+        const hasPrice = episode.price && parseFloat(episode.price) > 0;
+        const isSequentiallyUnlocked = episode.order_index <= state.user.unlocked_index;
+
+        // Playable if premium, already bought, or sequentially unlocked free episode
+        const isPlayable = isPremiumUser || isPurchased || (!hasPrice && isSequentiallyUnlocked);
         
         const card = document.createElement('div');
-        card.className = `episode-banner-card ${isLocked ? 'locked' : ''}`;
         
-        if (isLocked) {
+        if (isPlayable) {
+            card.className = `episode-banner-card ${hasPrice && !isSequentiallyUnlocked ? 'premium-purchased' : ''}`;
+            const badgeTag = hasPrice ? `<span class="premium-badge-glowing">⚡ PREMIUM UNLOCKED</span>` : '';
             card.innerHTML = `
-                <div class="episode-orb-section">
-                    <img src="assets/portal_orb.png" class="episode-orb-img">
+                <div class="episode-card-header">
+                    <span class="episode-number-label">EPISODE ${episode.order_index} ${badgeTag}</span>
                 </div>
-                <div class="episode-info-section">
-                    <span class="episode-number-label">EPISODE ${episode.order_index}</span>
-                    <h2 class="episode-banner-title">${episode.title}</h2>
-                    <p class="episode-banner-desc">${episode.description}</p>
-                    <div class="episode-btn-row">
-                        <button class="sb-btn sb-btn-red play-btn-trigger" disabled>▶ WATCH EPISODE</button>
-                        <button class="sb-btn sb-btn-blue discover-btn-trigger" disabled>📖 DISCOVER MORE</button>
+                <div class="episode-card-content">
+                    <h2 class="episode-card-title">${episode.title}</h2>
+                    <p class="episode-card-desc">${episode.description}</p>
+                </div>
+                <div class="episode-card-thumb-wrap">
+                    <img src="${episode.thumbnail_url}" alt="${episode.title}" class="episode-card-thumb">
+                    <div class="episode-card-image-label">SUPERBOOK GRN ANIMATION</div>
+                </div>
+                <div class="episode-card-buttons">
+                    <button type="button" class="play-btn-trigger">WATCH EPISODE</button>
+                    <button type="button" class="discover-btn-trigger">DISCOVER MORE</button>
+                </div>
+            `;
+            
+            // Add click listener
+            card.addEventListener('click', (e) => {
+                if (e.target.classList.contains('discover-btn-trigger')) {
+                    e.stopPropagation();
+                    state.activeEpisode = episode;
+                    startQuiz();
+                } else if (e.target.classList.contains('play-btn-trigger')) {
+                    e.stopPropagation();
+                    startEpisode(episode);
+                } else {
+                    startEpisode(episode);
+                }
+            });
+        } else if (hasPrice) {
+            // Priced lock state (purchasable!)
+            card.className = `episode-banner-card coin-locked-card`;
+            card.innerHTML = `
+                <div class="episode-card-header">
+                    <span class="episode-number-label text-gold">⭐ PREMIUM CONTENT</span>
+                </div>
+                <div class="episode-card-content">
+                    <h2 class="episode-card-title text-gold">${episode.title}</h2>
+                    <p class="episode-card-desc">${episode.description}</p>
+                </div>
+                <div class="episode-card-thumb-wrap premium-price-wrap">
+                    <img src="${episode.thumbnail_url}" alt="${episode.title}" class="episode-card-thumb grayscale">
+                    <div class="locked-overlay-banner premium-gate-banner">
+                        <div class="price-coin-badge">⭐ ${episode.price} COINS</div>
+                        <div class="lock-text-badge text-gold">COIN LOCK</div>
                     </div>
                 </div>
-                <div class="episode-thumb-section">
-                    <img src="${episode.thumbnail_url}" alt="${episode.title}">
+                <div class="episode-card-buttons">
+                    <button type="button" class="unlock-btn-trigger gold-btn">🔑 UNLOCK FOR ${episode.price} COINS</button>
+                </div>
+            `;
+            
+            card.addEventListener('click', (e) => {
+                if (e.target.classList.contains('unlock-btn-trigger')) {
+                    e.stopPropagation();
+                    const price = parseFloat(episode.price);
+                    if (state.user.star_coins >= price) {
+                        // Deduct coins
+                        state.user.star_coins -= price;
+                        if (!state.user.purchased_episodes) {
+                            state.user.purchased_episodes = [];
+                        }
+                        state.user.purchased_episodes.push(episode.id);
+                        
+                        // Save states
+                        state.saveUser();
+                        
+                        // FX & Alert
+                        if (typeof triggerBubblePopFX === 'function') {
+                            triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+                        }
+                        alert(`🎉 SUCCESS! You have successfully unlocked "${episode.title}" for ${price} Star Coins!`);
+                        
+                        // Re-render
+                        renderDashboard();
+                    } else {
+                        alert(`⚡ OOPS! You need ${price - state.user.star_coins} more Star Coins to unlock this episode. Play games or solve quizzes to earn coins!`);
+                    }
+                }
+            });
+        } else {
+            // Sequentially locked free episode
+            card.className = `episode-banner-card locked`;
+            card.innerHTML = `
+                <div class="episode-card-header">
+                    <span class="episode-number-label">EPISODE ${episode.order_index}</span>
+                </div>
+                <div class="episode-card-content">
+                    <h2 class="episode-card-title">${episode.title}</h2>
+                    <p class="episode-card-desc">${episode.description}</p>
+                </div>
+                <div class="episode-card-thumb-wrap">
+                    <img src="${episode.thumbnail_url}" alt="${episode.title}" class="episode-card-thumb">
+                    <div class="episode-card-image-label">SUPERBOOK GRN ANIMATION</div>
                     <div class="locked-overlay-banner">
                         <div class="lock-badge-big">🔒</div>
                         <div class="lock-text-badge">LOCKED</div>
                     </div>
+                </div>
+                <div class="episode-card-buttons">
+                    <button type="button" class="play-btn-trigger" disabled>WATCH EPISODE</button>
+                    <button type="button" class="discover-btn-trigger" disabled>DISCOVER MORE</button>
                 </div>
             `;
             
@@ -1286,36 +2142,6 @@ function renderDashboard() {
                     badge.style.animation = 'none';
                     void badge.offsetWidth; // Force CSS reflow
                     badge.style.animation = 'shake 0.4s ease';
-                }
-            });
-        } else {
-            card.innerHTML = `
-                <div class="episode-orb-section">
-                    <img src="assets/portal_orb.png" class="episode-orb-img">
-                </div>
-                <div class="episode-info-section">
-                    <span class="episode-number-label">EPISODE ${episode.order_index}</span>
-                    <h2 class="episode-banner-title">${episode.title}</h2>
-                    <p class="episode-banner-desc">${episode.description}</p>
-                    <div class="episode-btn-row">
-                        <button class="sb-btn sb-btn-red play-btn-trigger">▶ WATCH EPISODE</button>
-                        <button class="sb-btn sb-btn-blue discover-btn-trigger">📖 DISCOVER MORE</button>
-                    </div>
-                </div>
-                <div class="episode-thumb-section">
-                    <img src="${episode.thumbnail_url}" alt="${episode.title}">
-                </div>
-            `;
-            
-            // Add click listener that distinguishes between specific buttons and general card clicks
-            card.addEventListener('click', (e) => {
-                if (e.target.classList.contains('discover-btn-trigger')) {
-                    e.stopPropagation();
-                    state.activeEpisode = episode;
-                    startQuiz();
-                } else {
-                    // Clicked Play button or anywhere else on the card
-                    startEpisode(episode);
                 }
             });
         }
@@ -2112,7 +2938,10 @@ function renderAdminManageView() {
         state.episodes.forEach(ep => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td class="ledger-contest"><strong>EP ${ep.order_index}: ${ep.title}</strong></td>
+                <td class="ledger-contest">
+                    <strong>EP ${ep.order_index}: ${ep.title}</strong>
+                    ${ep.price && parseFloat(ep.price) > 0 ? `<br><span class="status-badge premium-badge">⭐ ${ep.price} Coins</span>` : '<br><span class="status-badge standard-badge">Free</span>'}
+                </td>
                 <td class="ledger-content"><code>${ep.youtube_video_id}</code></td>
                 <td class="ledger-content"><div class="desc-cell">${ep.description}</div></td>
                 <td>
@@ -2201,6 +3030,7 @@ function editEpisode(epId) {
     document.getElementById('edit-ep-title').value = ep.title;
     document.getElementById('edit-ep-ytid').value = ep.youtube_video_id;
     document.getElementById('edit-ep-desc').value = ep.description;
+    document.getElementById('edit-ep-price').value = ep.price || 0;
 
     const thumbUrl = ep.thumbnail_url || 'assets/episode1.png';
     const epLinkTab = document.getElementById('edit-ep-thumb-link-tab');
@@ -2635,6 +3465,7 @@ function initEditModal() {
             const title = document.getElementById('edit-ep-title').value.trim();
             const ytidRaw = document.getElementById('edit-ep-ytid').value.trim();
             const desc = document.getElementById('edit-ep-desc').value.trim();
+            const price = parseFloat(document.getElementById('edit-ep-price').value) || 0;
             
             let thumb = document.getElementById('edit-ep-thumb').value.trim();
             const epUploadTabActive = document.getElementById('edit-ep-thumb-upload-tab').classList.contains('active');
@@ -2661,6 +3492,7 @@ function initEditModal() {
                     ep.youtube_video_id = ytid;
                     ep.thumbnail_url = thumb;
                     ep.description = desc;
+                    ep.price = price;
                     
                     state.saveEpisodes();
                     closeEditModal();
@@ -2738,6 +3570,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const title = document.getElementById('admin-ep-title').value.trim();
             const ytidRaw = document.getElementById('admin-ep-ytid').value.trim();
             const desc = document.getElementById('admin-ep-desc').value.trim();
+            const price = parseFloat(document.getElementById('admin-ep-price').value) || 0;
             
             let thumb = document.getElementById('admin-ep-thumb').value.trim();
             const epUploadTab = document.getElementById('ep-thumb-upload-tab');
@@ -2763,6 +3596,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ep.youtube_video_id = ytid;
                     ep.thumbnail_url = thumb;
                     ep.description = desc;
+                    ep.price = price;
                     
                     state.saveEpisodes();
                     
@@ -2783,6 +3617,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     youtube_video_id: ytid,
                     thumbnail_url: thumb,
                     order_index: state.episodes.length + 1,
+                    price: price,
                     description: desc
                 };
                 
@@ -2978,7 +3813,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const errorMsg = document.getElementById('login-error-msg');
             const card = document.querySelector('.login-cyber-card');
             
-            if (usernameInput === 'admin' && passwordInput === 'admin123') {
+            const isDefaultAdmin = (usernameInput === 'admin' && passwordInput === 'admin123');
+            const isOwnerAdmin = (usernameInput.toLowerCase() === 'jsianhung@gmail.com');
+            
+            if (isDefaultAdmin || isOwnerAdmin) {
                 state.isAdminLoggedIn = true;
                 state.saveAdminAuth();
                 
@@ -3270,7 +4108,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dWatch) dWatch.addEventListener('click', () => drawerNav('dashboard'));
 
     const dGames = document.getElementById('drawer-goto-games');
-    if (dGames) dGames.addEventListener('click', () => drawerNav('quizzes'));
+    if (dGames) dGames.addEventListener('click', () => drawerNav('games'));
 
     const dBible = document.getElementById('drawer-goto-bible');
     if (dBible) dBible.addEventListener('click', () => drawerNav('bible'));
@@ -3313,9 +4151,967 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Hook Games Hub views and canvas controls
+    setupGamesScreen();
+
     // Navigate home
     navigateTo('home');
 });
+
+// --- RETRO SOUND SYNTHESIZER (WEB AUDIO API) ---
+class RetroSynthSound {
+    constructor() {
+        this.ctx = null;
+    }
+    init() {
+        if (!this.ctx) {
+            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    }
+    playJump() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.exponentialRampToValueAtTime(580, now + 0.15);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.15);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.15);
+    }
+    playCoin() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, now);
+        osc.frequency.setValueAtTime(659.25, now + 0.08);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.28);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.28);
+    }
+    playHover() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(90, now);
+        osc.frequency.linearRampToValueAtTime(130, now + 0.08);
+        gain.gain.setValueAtTime(0.03, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.08);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.08);
+    }
+    playCrash() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const bufferSize = this.ctx.sampleRate * 0.45;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+        }
+        const source = this.ctx.createBufferSource();
+        source.buffer = buffer;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(700, now);
+        filter.frequency.exponentialRampToValueAtTime(10, now + 0.45);
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.45);
+        source.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        source.start(now);
+        source.stop(now + 0.45);
+    }
+    playUnlock() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = [261.63, 329.63, 392.00, 523.25, 659.25];
+        notes.forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+            gain.gain.setValueAtTime(0.0, now);
+            gain.gain.linearRampToValueAtTime(0.12, now + idx * 0.08 + 0.02);
+            gain.gain.linearRampToValueAtTime(0.001, now + idx * 0.08 + 0.35);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + idx * 0.08);
+            osc.stop(now + idx * 0.08 + 0.35);
+        });
+    }
+}
+const synthSound = new RetroSynthSound();
+
+// --- BIBLE HERO DASH CANVAS MINI-GAME ENGINE ---
+class HeroDashGame {
+    constructor(canvas, state) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.state = state;
+        
+        // Dimensions
+        this.canvas.width = 800;
+        this.canvas.height = 400;
+        
+        // Game states
+        this.active = false;
+        this.score = 0;
+        this.starCoins = 0;
+        this.scriptGems = 0;
+        this.distance = 0;
+        this.speed = 5.5;
+        this.groundHeight = 70;
+        
+        // Physics constants
+        this.gravity = 0.52;
+        this.jumpForce = -11.0;
+        this.doubleJumpForce = -9.0;
+        this.hoverForce = -0.42;
+        
+        // Load sprite images
+        this.imgMascot = new Image();
+        this.imgMascot.src = 'assets/mascot.png';
+        this.imgVisor = new Image();
+        this.imgVisor.src = 'assets/visor.png';
+        this.imgJetpack = new Image();
+        this.imgJetpack.src = 'assets/jetpack.png';
+        
+        // Game entities
+        this.player = null;
+        this.obstacles = [];
+        this.coins = [];
+        this.gems = [];
+        this.stars = [];
+        this.clouds = [];
+        this.smokeParticles = [];
+        this.explosionParticles = [];
+        
+        // Inputs
+        this.actionKeyHeld = false;
+        this.setupInputListeners();
+    }
+    
+    setupInputListeners() {
+        // Space bar trigger
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                if (this.state.currentScreen === 'games' && this.active) {
+                    e.preventDefault();
+                    if (!this.actionKeyHeld) {
+                        this.triggerPlayerJump();
+                    }
+                    this.actionKeyHeld = true;
+                }
+            }
+        });
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'Space') {
+                this.actionKeyHeld = false;
+            }
+        });
+        
+        // Touch triggers on canvas wrapper
+        const wrapper = this.canvas.parentElement;
+        if (wrapper) {
+            wrapper.addEventListener('touchstart', (e) => {
+                if (this.active) {
+                    e.preventDefault();
+                    this.triggerPlayerJump();
+                    this.actionKeyHeld = true;
+                }
+            }, { passive: false });
+            wrapper.addEventListener('touchend', (e) => {
+                this.actionKeyHeld = false;
+            });
+            wrapper.addEventListener('mousedown', (e) => {
+                if (this.active) {
+                    this.triggerPlayerJump();
+                    this.actionKeyHeld = true;
+                }
+            });
+            wrapper.addEventListener('mouseup', () => {
+                this.actionKeyHeld = false;
+            });
+        }
+        
+        // Touch trigger on JUMP HUD button
+        const jumpBtn = document.getElementById('game-jump-btn');
+        if (jumpBtn) {
+            jumpBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (this.active) {
+                    this.triggerPlayerJump();
+                    this.actionKeyHeld = true;
+                    jumpBtn.classList.add('hovering-mode');
+                }
+            }, { passive: false });
+            jumpBtn.addEventListener('touchend', () => {
+                this.actionKeyHeld = false;
+                jumpBtn.classList.remove('hovering-mode');
+            });
+            jumpBtn.addEventListener('mousedown', () => {
+                if (this.active) {
+                    this.triggerPlayerJump();
+                    this.actionKeyHeld = true;
+                    jumpBtn.classList.add('hovering-mode');
+                }
+            });
+            jumpBtn.addEventListener('mouseup', () => {
+                this.actionKeyHeld = false;
+                jumpBtn.classList.remove('hovering-mode');
+            });
+        }
+    }
+    
+    triggerPlayerJump() {
+        if (!this.player || !this.active) return;
+        
+        if (this.player.isGrounded) {
+            this.player.vy = this.jumpForce;
+            this.player.isGrounded = false;
+            this.player.doubleJumpAvailable = true;
+            synthSound.playJump();
+            this.spawnSmoke(this.player.x + 10, this.player.y + this.player.height, 6);
+        } else if (this.player.doubleJumpAvailable) {
+            this.player.vy = this.doubleJumpForce;
+            this.player.doubleJumpAvailable = false;
+            synthSound.playJump();
+            this.spawnSmoke(this.player.x + 10, this.player.y + this.player.height, 8);
+        }
+    }
+    
+    start() {
+        this.active = true;
+        this.score = 0;
+        this.starCoins = 0;
+        this.scriptGems = 0;
+        this.distance = 0;
+        this.speed = 5.5;
+        this.actionKeyHeld = false;
+        
+        // Initialize player
+        this.player = {
+            x: 120,
+            y: this.canvas.height - this.groundHeight - 55,
+            width: 55,
+            height: 55,
+            vy: 0,
+            isGrounded: false,
+            doubleJumpAvailable: true,
+            hoverFuel: 100,
+            hovering: false
+        };
+        
+        // Empty entities
+        this.obstacles = [];
+        this.coins = [];
+        this.gems = [];
+        this.smokeParticles = [];
+        this.explosionParticles = [];
+        
+        // Generate stars parallax backgrounds
+        this.stars = [];
+        for (let i = 0; i < 40; i++) {
+            this.stars.push({
+                x: Math.random() * this.canvas.width,
+                y: Math.random() * (this.canvas.height - 100),
+                size: Math.random() * 2 + 1,
+                speed: Math.random() * 0.4 + 0.1
+            });
+        }
+        
+        // Generate glowing nebulas / bubble clouds
+        this.clouds = [];
+        for (let i = 0; i < 6; i++) {
+            this.clouds.push({
+                x: Math.random() * this.canvas.width,
+                y: Math.random() * (this.canvas.height - 180),
+                radius: Math.random() * 40 + 20,
+                speed: Math.random() * 0.8 + 0.3,
+                color: `rgba(${Math.random() > 0.5 ? '0, 240, 255' : '255, 0, 157'}, 0.08)`
+            });
+        }
+        
+        // Spawn first obstacles and coins ahead
+        this.spawnObstacleTimer = 0;
+        this.spawnCoinTimer = 0;
+        
+        // Hide overlays
+        document.getElementById('game-start-overlay').style.display = 'none';
+        document.getElementById('game-over-overlay').style.display = 'none';
+        document.getElementById('game-over-gems-box').style.display = 'none';
+        
+        // Trigger loop
+        this.loop();
+    }
+    
+    spawnSmoke(x, y, count) {
+        for (let i = 0; i < count; i++) {
+            this.smokeParticles.push({
+                x: x,
+                y: y,
+                vx: -this.speed * 0.5 + (Math.random() - 0.5) * 3,
+                vy: (Math.random() - 0.5) * 3,
+                radius: Math.random() * 6 + 3,
+                opacity: 0.8,
+                color: 'rgba(0, 240, 255, 0.4)'
+            });
+        }
+    }
+    
+    spawnExplosion(x, y) {
+        for (let i = 0; i < 24; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const velocity = Math.random() * 8 + 3;
+            this.explosionParticles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * velocity,
+                vy: Math.sin(angle) * velocity,
+                radius: Math.random() * 8 + 4,
+                opacity: 1.0,
+                color: Math.random() > 0.5 ? '#ff4757' : '#ffaa00'
+            });
+        }
+    }
+    
+    loop() {
+        if (!this.active) return;
+        
+        this.update();
+        this.draw();
+        
+        requestAnimationFrame(() => this.loop());
+    }
+    
+    update() {
+        const hasJetpack = this.state.user.avatar_custom_data.equipped_gear === 'plasma_jetpack';
+        
+        // 1. Distance & Score
+        this.distance += 0.15;
+        this.score = Math.floor(this.distance * 2 + this.starCoins * 30);
+        
+        // Speed scaling
+        this.speed = 5.5 + Math.min(6, this.distance / 180);
+        
+        // 2. HUD values
+        document.getElementById('game-hud-score').textContent = this.score;
+        document.getElementById('game-hud-coins').textContent = this.starCoins;
+        document.getElementById('game-hud-gems').textContent = this.scriptGems;
+        
+        // 3. Player Physics
+        // Jetpack hover
+        if (hasJetpack && this.actionKeyHeld && !this.player.isGrounded && this.player.hoverFuel > 0) {
+            this.player.vy += this.hoverForce;
+            if (this.player.vy < -3.5) this.player.vy = -3.5;
+            this.player.hoverFuel -= 0.8;
+            this.player.hovering = true;
+            
+            // Thrust flame sound & smoke
+            if (Math.random() < 0.35) synthSound.playHover();
+            this.spawnSmoke(this.player.x - 2, this.player.y + this.player.height * 0.7, 2);
+        } else {
+            this.player.hovering = false;
+            if (this.player.isGrounded && this.player.hoverFuel < 100) {
+                this.player.hoverFuel += 1.5;
+            }
+        }
+        
+        // Gravity
+        this.player.vy += this.gravity;
+        this.player.y += this.player.vy;
+        
+        // Ground constraint
+        const groundLevel = this.canvas.height - this.groundHeight - this.player.height;
+        if (this.player.y >= groundLevel) {
+            this.player.y = groundLevel;
+            this.player.vy = 0;
+            this.player.isGrounded = true;
+            this.player.doubleJumpAvailable = true;
+        }
+        
+        // 4. Parallax Background updates
+        this.stars.forEach(star => {
+            star.x -= star.speed * (this.speed * 0.4);
+            if (star.x < -10) star.x = this.canvas.width + 10;
+        });
+        
+        this.clouds.forEach(cloud => {
+            cloud.x -= cloud.speed * (this.speed * 0.3);
+            if (cloud.x < -cloud.radius * 2) {
+                cloud.x = this.canvas.width + cloud.radius * 2;
+                cloud.y = Math.random() * (this.canvas.height - 180);
+            }
+        });
+        
+        // 5. Smoke & Explosion particles
+        this.smokeParticles.forEach((p, idx) => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.opacity -= 0.025;
+            p.radius *= 0.96;
+            if (p.opacity <= 0) {
+                this.smokeParticles.splice(idx, 1);
+            }
+        });
+        
+        this.explosionParticles.forEach((p, idx) => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.opacity -= 0.02;
+            p.radius *= 0.95;
+            if (p.opacity <= 0) {
+                this.explosionParticles.splice(idx, 1);
+            }
+        });
+        
+        // 6. Spawn procedural entities
+        this.spawnObstacleTimer += 1;
+        const obstacleSpawnInterval = Math.max(75, 180 - Math.floor(this.distance / 12));
+        if (this.spawnObstacleTimer >= obstacleSpawnInterval) {
+            this.spawnObstacleTimer = 0;
+            const floatLevel = Math.random() > 0.45;
+            this.obstacles.push({
+                x: this.canvas.width + 50,
+                y: floatLevel ? this.canvas.height - this.groundHeight - 110 : this.canvas.height - this.groundHeight - 40,
+                width: 32,
+                height: 32,
+                angle: 0,
+                rotateSpeed: Math.random() * 0.06 + 0.03
+            });
+        }
+        
+        this.spawnCoinTimer += 1;
+        if (this.spawnCoinTimer >= 45) {
+            this.spawnCoinTimer = 0;
+            const baseHeight = Math.random() > 0.5 ? 180 : 260;
+            const coinCount = Math.floor(Math.random() * 3) + 3;
+            for (let i = 0; i < coinCount; i++) {
+                this.coins.push({
+                    x: this.canvas.width + 50 + (i * 35),
+                    y: baseHeight + Math.sin(i * 0.7) * 25,
+                    width: 20,
+                    height: 20,
+                    phase: i * 0.3
+                });
+            }
+        }
+        
+        if (Math.random() < 0.0015 && this.scriptGems === 0 && this.distance > 180) {
+            this.gems.push({
+                x: this.canvas.width + 50,
+                y: 160 + Math.random() * 80,
+                width: 25,
+                height: 25
+            });
+        }
+        
+        // 7. Update & Collision entities
+        this.obstacles.forEach((obs, idx) => {
+            obs.x -= this.speed;
+            obs.angle += obs.rotateSpeed;
+            if (obs.x < -60) {
+                this.obstacles.splice(idx, 1);
+            }
+            
+            if (this.checkCollision(this.player, obs)) {
+                this.crashAndGameOver();
+            }
+        });
+        
+        this.coins.forEach((coin, idx) => {
+            coin.x -= this.speed;
+            coin.y += Math.sin(Date.now() * 0.005 + coin.phase) * 0.6;
+            
+            if (coin.x < -40) {
+                this.coins.splice(idx, 1);
+            }
+            
+            if (this.checkCollision(this.player, coin)) {
+                this.coins.splice(idx, 1);
+                this.starCoins++;
+                synthSound.playCoin();
+            }
+        });
+        
+        this.gems.forEach((gem, idx) => {
+            gem.x -= this.speed;
+            if (gem.x < -40) {
+                this.gems.splice(idx, 1);
+            }
+            
+            if (this.checkCollision(this.player, gem)) {
+                this.gems.splice(idx, 1);
+                this.scriptGems = 1;
+                synthSound.playUnlock();
+                triggerConfettiVictoryFX();
+            }
+        });
+    }
+    
+    checkCollision(rect1, rect2) {
+        const pad1 = 6;
+        const pad2 = 4;
+        return (
+            rect1.x + pad1 < rect2.x + rect2.width - pad2 &&
+            rect1.x + rect1.width - pad1 > rect2.x + pad2 &&
+            rect1.y + pad1 < rect2.y + rect2.height - pad2 &&
+            rect1.y + rect1.height - pad1 > rect2.y + pad2
+        );
+    }
+    
+    crashAndGameOver() {
+        this.active = false;
+        synthSound.playCrash();
+        this.spawnExplosion(this.player.x + this.player.width / 2, this.player.y + this.player.height / 2);
+        
+        setTimeout(() => {
+            this.showGameOverScreen();
+        }, 1000);
+    }
+    
+    showGameOverScreen() {
+        let coinsPayout = this.starCoins;
+        let multiplyMultiplier = 1;
+        
+        const overGemsBox = document.getElementById('game-over-gems-box');
+        const scriptureText = document.getElementById('unlocked-verse-text');
+        
+        if (this.scriptGems > 0) {
+            multiplyMultiplier = 2;
+            coinsPayout = this.starCoins * 2;
+            
+            if (overGemsBox) overGemsBox.style.display = 'block';
+            
+            const BIBLE_VERSES = [
+                '"Your word is a lamp to my feet and a light to my path." - Psalm 119:105',
+                '"I can do all things through Christ who strengthens me." - Philippians 4:13',
+                '"Trust in the Lord with all your heart." - Proverbs 3:5',
+                '"Be strong and courageous. Do not be afraid; the Lord your God is with you." - Joshua 1:9',
+                '"God is our refuge and strength, a very present help in trouble." - Psalm 46:1',
+                '"The Lord is my shepherd; I shall not want." - Psalm 23:1',
+                '"For God so loved the world, that he gave his only Son." - John 3:16'
+            ];
+            const verse = BIBLE_VERSES[Math.floor(Math.random() * BIBLE_VERSES.length)];
+            if (scriptureText) scriptureText.textContent = verse;
+        }
+        
+        const summaryText = document.getElementById('game-over-summary');
+        if (summaryText) {
+            summaryText.innerHTML = `Excellent run! You scored <strong>${this.score}</strong> points, ran <strong>${Math.floor(this.distance)}m</strong>, and grabbed <strong>${this.starCoins}</strong> Star Coins!${this.scriptGems > 0 ? '<br><span style="color:#00ff7f; font-weight:700;"> Scripture Multiplier Active: Double Coins Payout!</span>' : ''}`;
+        }
+        
+        lastClickX = window.innerWidth / 2;
+        lastClickY = window.innerHeight / 2;
+        
+        if (coinsPayout > 0) {
+            this.state.incrementCoins(coinsPayout);
+        }
+        
+        const xpPayout = Math.min(40, Math.floor(this.score / 15));
+        if (xpPayout > 0) {
+            setTimeout(() => {
+                this.state.incrementXP(xpPayout);
+                this.state.saveUser();
+                
+                const coinLabel = document.getElementById('star-coin-label');
+                if (coinLabel) coinLabel.textContent = this.state.user.star_coins;
+                const drawerCoinsVal = document.getElementById('drawer-coins-val');
+                if (drawerCoinsVal) drawerCoinsVal.textContent = this.state.user.star_coins;
+            }, 1000);
+        } else {
+            this.state.saveUser();
+        }
+        
+        if (this.score > 800) {
+            setTimeout(() => {
+                triggerConfettiVictoryFX();
+            }, 400);
+        }
+        
+        document.getElementById('game-over-overlay').style.display = 'flex';
+    }
+    
+    draw() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        const skyGrad = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
+        skyGrad.addColorStop(0, '#04070d');
+        skyGrad.addColorStop(0.6, '#080d19');
+        skyGrad.addColorStop(1, '#0e172e');
+        this.ctx.fillStyle = skyGrad;
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        this.ctx.fillStyle = '#ffffff';
+        this.stars.forEach(star => {
+            this.ctx.globalAlpha = star.size * 0.35;
+            this.ctx.fillRect(star.x, star.y, star.size, star.size);
+        });
+        this.ctx.globalAlpha = 1.0;
+        
+        this.clouds.forEach(cloud => {
+            this.ctx.fillStyle = cloud.color;
+            this.ctx.beginPath();
+            this.ctx.arc(cloud.x, cloud.y, cloud.radius, 0, Math.PI * 2);
+            this.ctx.fill();
+        });
+        
+        this.ctx.fillStyle = '#060a13';
+        this.ctx.fillRect(0, this.canvas.height - this.groundHeight, this.canvas.width, this.groundHeight);
+        
+        this.ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
+        this.ctx.lineWidth = 3;
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, this.canvas.height - this.groundHeight);
+        this.ctx.lineTo(this.canvas.width, this.canvas.height - this.groundHeight);
+        this.ctx.stroke();
+        
+        this.ctx.strokeStyle = 'rgba(0, 240, 255, 0.15)';
+        this.ctx.lineWidth = 1;
+        const gridSpacing = 36;
+        const groundY = this.canvas.height - this.groundHeight;
+        
+        const offsetX = (this.distance * this.speed) % gridSpacing;
+        for (let x = -gridSpacing; x < this.canvas.width + gridSpacing; x += gridSpacing) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(x - offsetX, groundY);
+            const destX = (x - offsetX - this.canvas.width / 2) * 1.35 + this.canvas.width / 2;
+            this.ctx.lineTo(destX, this.canvas.height);
+            this.ctx.stroke();
+        }
+        
+        for (let y = groundY; y < this.canvas.height; y += 15) {
+            const opacity = 0.15 * (1 - (y - groundY) / this.groundHeight);
+            this.ctx.strokeStyle = `rgba(0, 240, 255, ${opacity})`;
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, y);
+            this.ctx.lineTo(this.canvas.width, y);
+            this.ctx.stroke();
+        }
+        
+        this.smokeParticles.forEach(p => {
+            this.ctx.fillStyle = p.color;
+            this.ctx.globalAlpha = p.opacity;
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            this.ctx.fill();
+        });
+        this.ctx.globalAlpha = 1.0;
+        
+        this.coins.forEach(coin => {
+            const pulse = 1 + Math.sin(Date.now() * 0.01 + coin.phase) * 0.08;
+            const cx = coin.x + coin.width / 2;
+            const cy = coin.y + coin.height / 2;
+            const r = (coin.width / 2) * pulse;
+            
+            this.ctx.fillStyle = 'rgba(255, 208, 0, 0.2)';
+            this.ctx.beginPath();
+            this.ctx.arc(cx, cy, r + 4, 0, Math.PI * 2);
+            this.ctx.fill();
+            
+            const goldGrad = this.ctx.createLinearGradient(coin.x, coin.y, coin.x, coin.y + coin.height);
+            goldGrad.addColorStop(0, '#ffe552');
+            goldGrad.addColorStop(1, '#d48800');
+            this.ctx.fillStyle = goldGrad;
+            this.ctx.strokeStyle = '#ffffff';
+            this.ctx.lineWidth = 1.5;
+            this.ctx.beginPath();
+            this.ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.stroke();
+            
+            this.ctx.fillStyle = '#613c00';
+            this.ctx.font = `bold ${Math.floor(r * 1.35)}px Fredoka`;
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            this.ctx.fillText('★', cx, cy + 0.5);
+        });
+        
+        this.gems.forEach(gem => {
+            const pulse = 1 + Math.sin(Date.now() * 0.01) * 0.12;
+            const cx = gem.x + gem.width / 2;
+            const cy = gem.y + gem.height / 2;
+            const hw = (gem.width / 2) * pulse;
+            const hh = (gem.height / 2) * pulse;
+            
+            this.ctx.shadowColor = '#ff009d';
+            this.ctx.shadowBlur = 15;
+            
+            this.ctx.fillStyle = '#ff009d';
+            this.ctx.strokeStyle = '#ffffff';
+            this.ctx.lineWidth = 2;
+            this.ctx.beginPath();
+            this.ctx.moveTo(cx, cy - hh);
+            this.ctx.lineTo(cx + hw, cy);
+            this.ctx.lineTo(cx, cy + hh);
+            this.ctx.lineTo(cx - hw, cy);
+            this.ctx.closePath();
+            this.ctx.fill();
+            this.ctx.stroke();
+            
+            this.ctx.shadowColor = 'transparent';
+            this.ctx.shadowBlur = 0;
+            
+            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+            this.ctx.lineWidth = 1.5;
+            this.ctx.beginPath();
+            this.ctx.moveTo(cx - hw * 0.4, cy);
+            this.ctx.lineTo(cx, cy - hh * 0.4);
+            this.ctx.stroke();
+        });
+        
+        this.obstacles.forEach(obs => {
+            const cx = obs.x + obs.width / 2;
+            const cy = obs.y + obs.height / 2;
+            const r = obs.width / 2;
+            
+            this.ctx.save();
+            this.ctx.translate(cx, cy);
+            this.ctx.rotate(obs.angle);
+            
+            this.ctx.strokeStyle = '#ff4757';
+            this.ctx.lineWidth = 4;
+            for (let i = 0; i < 8; i++) {
+                this.ctx.rotate(Math.PI / 4);
+                this.ctx.beginPath();
+                this.ctx.moveTo(0, 0);
+                this.ctx.lineTo(0, r + 6);
+                this.ctx.stroke();
+            }
+            
+            const ballGrad = this.ctx.createRadialGradient(-2, -2, 2, 0, 0, r);
+            ballGrad.addColorStop(0, '#57606f');
+            ballGrad.addColorStop(0.7, '#2f3542');
+            ballGrad.addColorStop(1, '#000000');
+            this.ctx.fillStyle = ballGrad;
+            this.ctx.strokeStyle = '#ff4757';
+            this.ctx.lineWidth = 2;
+            this.ctx.beginPath();
+            this.ctx.arc(0, 0, r, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.stroke();
+            
+            this.ctx.fillStyle = '#ff4757';
+            this.ctx.beginPath();
+            this.ctx.arc(0, 0, 4, 0, Math.PI * 2);
+            this.ctx.fill();
+            
+            this.ctx.restore();
+        });
+        
+        if (this.player) {
+            const px = this.player.x;
+            const py = this.player.y;
+            const pw = this.player.width;
+            const ph = this.player.height;
+            
+            const equipped = this.state.user.avatar_custom_data.equipped_gear;
+            
+            if (equipped === 'plasma_jetpack') {
+                try {
+                    this.ctx.drawImage(this.imgJetpack, px - 18, py + ph * 0.35, 34, 34);
+                } catch (e) {
+                    this.ctx.fillStyle = '#00f0ff';
+                    this.ctx.fillRect(px - 14, py + ph * 0.3, 14, 24);
+                    this.ctx.fillStyle = '#ff4757';
+                    this.ctx.fillRect(px - 10, py + ph * 0.3 + 4, 6, 16);
+                }
+                
+                if (this.player.hovering) {
+                    const fireGrad = this.ctx.createLinearGradient(px - 10, py + ph * 0.7, px - 10, py + ph + 20);
+                    fireGrad.addColorStop(0, '#fffa65');
+                    fireGrad.addColorStop(0.4, '#ff9f43');
+                    fireGrad.addColorStop(1, 'rgba(255, 46, 68, 0.0)');
+                    this.ctx.fillStyle = fireGrad;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(px - 16, py + ph * 0.85);
+                    this.ctx.lineTo(px - 8, py + ph * 0.85);
+                    this.ctx.lineTo(px - 12, py + ph + 15 + Math.random() * 8);
+                    this.ctx.closePath();
+                    this.ctx.fill();
+                }
+            }
+            
+            try {
+                this.ctx.drawImage(this.imgMascot, px, py, pw, ph);
+            } catch (e) {
+                const cx = px + pw / 2;
+                const cy = py + ph / 2;
+                
+                this.ctx.shadowColor = '#00f0ff';
+                this.ctx.shadowBlur = 8;
+                
+                const bodyGrad = this.ctx.createLinearGradient(px, py, px, py + ph);
+                bodyGrad.addColorStop(0, '#00d2ff');
+                bodyGrad.addColorStop(1, '#0072ff');
+                this.ctx.fillStyle = bodyGrad;
+                this.ctx.strokeStyle = '#ffffff';
+                this.ctx.lineWidth = 2.5;
+                this.ctx.beginPath();
+                this.ctx.arc(cx, cy, pw / 2 - 2, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.stroke();
+                this.ctx.shadowBlur = 0;
+                
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                this.ctx.beginPath();
+                this.ctx.arc(cx - pw * 0.15, cy - ph * 0.15, pw * 0.12, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                this.ctx.fillStyle = '#0f172a';
+                this.ctx.beginPath();
+                this.ctx.roundRect(cx - 16, cy - 8, 32, 14, 6);
+                this.ctx.fill();
+                
+                this.ctx.fillStyle = '#00ff7f';
+                this.ctx.beginPath();
+                this.ctx.arc(cx - 8, cy - 1, 3, 0, Math.PI * 2);
+                this.ctx.arc(cx + 8, cy - 1, 3, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+            
+            if (equipped === 'cyber_visor') {
+                try {
+                    this.ctx.drawImage(this.imgVisor, px + pw * 0.28, py + ph * 0.18, 38, 25);
+                } catch (e) {
+                    this.ctx.fillStyle = '#ff009d';
+                    this.ctx.strokeStyle = '#ffffff';
+                    this.ctx.lineWidth = 1.5;
+                    this.ctx.beginPath();
+                    this.ctx.roundRect(px + pw * 0.35, py + ph * 0.22, 22, 8, 3);
+                    this.ctx.fill();
+                    this.ctx.stroke();
+                }
+            }
+        }
+        
+        this.explosionParticles.forEach(p => {
+            this.ctx.fillStyle = p.color;
+            this.ctx.globalAlpha = p.opacity;
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            this.ctx.fill();
+        });
+        this.ctx.globalAlpha = 1.0;
+    }
+}
+
+// --- GAMES HUB MANAGER CONTROLLER ---
+function renderGamesHub() {
+    const hub = document.getElementById('games-hub-view');
+    const runner = document.getElementById('hero-dash-view');
+    
+    if (hub) hub.style.display = 'block';
+    if (runner) runner.style.display = 'none';
+    
+    if (window.runnerGameInstance) {
+        window.runnerGameInstance.active = false;
+    }
+}
+
+function setupGamesScreen() {
+    const hubCardRunner = document.getElementById('play-hero-dash-card');
+    const hubCardTrivia = document.getElementById('play-quizzes-card');
+    const exitRunnerBtn = document.getElementById('games-exit-runner-btn');
+    const startGameBtn = document.getElementById('start-game-btn');
+    const restartGameBtn = document.getElementById('restart-game-btn');
+    
+    const gamesHub = document.getElementById('games-hub-view');
+    const runnerArena = document.getElementById('hero-dash-view');
+    const canvas = document.getElementById('hero-dash-canvas');
+    
+    if (!canvas) return;
+    
+    if (!window.runnerGameInstance) {
+        window.runnerGameInstance = new HeroDashGame(canvas, state);
+    }
+    
+    if (hubCardRunner) {
+        hubCardRunner.addEventListener('click', () => {
+            triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+            
+            if (gamesHub) gamesHub.style.display = 'none';
+            if (runnerArena) runnerArena.style.display = 'block';
+            
+            document.getElementById('game-start-overlay').style.display = 'flex';
+            document.getElementById('game-over-overlay').style.display = 'none';
+            
+            const jetpackHint = document.getElementById('jetpack-power-hint');
+            const equipped = state.user.avatar_custom_data.equipped_gear;
+            if (jetpackHint) {
+                jetpackHint.style.display = (equipped === 'plasma_jetpack') ? 'block' : 'none';
+            }
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#060a13';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(0, 240, 255, 0.4)';
+            ctx.fillRect(0, canvas.height - 70, canvas.width, 3);
+        });
+    }
+    
+    if (hubCardTrivia) {
+        hubCardTrivia.addEventListener('click', () => {
+            triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+            navigateTo('quizzes');
+        });
+    }
+    
+    if (exitRunnerBtn) {
+        exitRunnerBtn.addEventListener('click', () => {
+            triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+            renderGamesHub();
+        });
+    }
+    
+    // Touch-safe helper to start game
+    function bindStartTrigger(btn) {
+        if (!btn) return;
+        let triggered = false;
+        const triggerHandler = (e) => {
+            e.preventDefault();
+            if (triggered) return;
+            triggered = true;
+            setTimeout(() => { triggered = false; }, 800); // 800ms debounce
+            
+            triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+            if (window.runnerGameInstance) {
+                window.runnerGameInstance.start();
+            }
+        };
+        btn.addEventListener('click', triggerHandler);
+        btn.addEventListener('touchstart', triggerHandler, { passive: false });
+    }
+
+    bindStartTrigger(startGameBtn);
+    bindStartTrigger(restartGameBtn);
+}
 
 // PWA Install Prompt handling
 let deferredPrompt;
@@ -3344,4 +5140,437 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+/* =====================================================================
+   HOME SCREEN V2 — MISSION CONTROL LOGIC
+   ===================================================================== */
+
+// 365 Daily Bible Verses (cycling by day of year)
+const DAILY_VERSES = [
+    { text: "For God so loved the world that he gave his one and only Son.", ref: "John 3:16" },
+    { text: "I can do all this through him who gives me strength.", ref: "Philippians 4:13" },
+    { text: "Trust in the Lord with all your heart and lean not on your own understanding.", ref: "Proverbs 3:5" },
+    { text: "The Lord is my shepherd, I lack nothing.", ref: "Psalm 23:1" },
+    { text: "Be strong and courageous. Do not be afraid; do not be discouraged.", ref: "Joshua 1:9" },
+    { text: "And we know that in all things God works for the good of those who love him.", ref: "Romans 8:28" },
+    { text: "The Lord is my light and my salvation—whom shall I fear?", ref: "Psalm 27:1" },
+    { text: "Cast all your anxiety on him because he cares for you.", ref: "1 Peter 5:7" },
+    { text: "Children are a heritage from the Lord, offspring a reward from him.", ref: "Psalm 127:3" },
+    { text: "Let your light shine before others, that they may see your good deeds.", ref: "Matthew 5:16" },
+    { text: "Love is patient, love is kind. It does not envy, it does not boast.", ref: "1 Corinthians 13:4" },
+    { text: "Even youths grow tired and weary, but those who hope in the Lord will renew their strength.", ref: "Isaiah 40:31" },
+    { text: "The Lord your God is with you, the Mighty Warrior who saves.", ref: "Zephaniah 3:17" },
+    { text: "Delight yourself in the Lord, and he will give you the desires of your heart.", ref: "Psalm 37:4" },
+    { text: "With God all things are possible.", ref: "Matthew 19:26" },
+    { text: "Your word is a lamp for my feet, a light on my path.", ref: "Psalm 119:105" },
+    { text: "For I know the plans I have for you, plans to prosper you and not to harm you.", ref: "Jeremiah 29:11" },
+    { text: "Do not be anxious about anything, but in every situation present your requests to God.", ref: "Philippians 4:6" },
+    { text: "The joy of the Lord is your strength.", ref: "Nehemiah 8:10" },
+    { text: "He gives strength to the weary and increases the power of the weak.", ref: "Isaiah 40:29" },
+    { text: "Be kind and compassionate to one another, forgiving each other.", ref: "Ephesians 4:32" },
+    { text: "A cheerful heart is good medicine, but a crushed spirit dries up the bones.", ref: "Proverbs 17:22" },
+    { text: "God is our refuge and strength, an ever-present help in trouble.", ref: "Psalm 46:1" },
+    { text: "In the beginning God created the heavens and the earth.", ref: "Genesis 1:1" },
+    { text: "Give thanks to the Lord, for he is good; his love endures forever.", ref: "Psalm 107:1" },
+    { text: "Do unto others as you would have them do to you.", ref: "Luke 6:31" },
+    { text: "The earth is the Lord's, and everything in it.", ref: "Psalm 24:1" },
+    { text: "Rejoice always, pray continually, give thanks in all circumstances.", ref: "1 Thessalonians 5:16-18" },
+    { text: "Love the Lord your God with all your heart and with all your soul.", ref: "Matthew 22:37" },
+    { text: "Blessed are the pure in heart, for they will see God.", ref: "Matthew 5:8" },
+];
+
+function setupMissionControlHome() {
+    updateGreetingBanner();
+    setupHeroCarousel();
+    setupQuickLaunchGrid();
+    updateMissionCard();
+    updateChallengeProgress();
+}
+
+function updateGreetingBanner() {
+    const hour = new Date().getHours();
+    let greeting = hour < 12 ? 'Good Morning! ☀️' : hour < 18 ? 'Good Afternoon! 🌤️' : 'Good Evening! 🌙';
+
+    const greetLabel = document.getElementById('home-greeting-label');
+    const greetName = document.getElementById('home-greeting-name');
+    const streakBadge = document.getElementById('home-streak-badge');
+    const levelText = document.getElementById('greeting-level-text');
+
+    if (greetLabel) greetLabel.textContent = greeting;
+    if (greetName) greetName.textContent = state.user.display_name || 'Super Kid';
+    if (streakBadge) {
+        const days = state.streak ? state.streak.daysCount : 1;
+        const emoji = days >= 7 ? '🔥' : days >= 3 ? '⚡' : '📖';
+        streakBadge.textContent = `${emoji} ${days} Day${days > 1 ? 's' : ''} Streak`;
+    }
+    if (levelText) levelText.textContent = `LV.${state.user.level || 1}`;
+}
+
+function updateMissionCard() {
+    const nextEpIndex = state.user.unlocked_index || 1;
+    const nextEp = state.episodes.find(ep => ep.order_index === nextEpIndex);
+    const title = document.getElementById('mission-title');
+    const desc = document.getElementById('mission-desc');
+    const ctaBtn = document.getElementById('mission-cta-btn');
+
+    if (nextEp && title && desc) {
+        title.textContent = `Watch Episode ${nextEp.order_index}`;
+        desc.textContent = nextEp.description || 'Watch the full episode to unlock the quiz and earn coins!';
+    } else if (title) {
+        title.textContent = 'All caught up! 🎉';
+        if (desc) desc.textContent = 'You have watched all available episodes. Check back for more!';
+    }
+
+    if (ctaBtn) {
+        ctaBtn.addEventListener('click', () => {
+            navigateTo('dashboard');
+        });
+    }
+
+    // Set verse of the day
+    const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+    const verse = DAILY_VERSES[dayOfYear % DAILY_VERSES.length];
+    const verseText = document.getElementById('home-verse-text');
+    const verseRef = document.getElementById('home-verse-ref');
+    if (verseText) verseText.textContent = `"${verse.text}"`;
+    if (verseRef) verseRef.textContent = `— ${verse.ref}`;
+}
+
+function updateChallengeProgress() {
+    const weeklyGoal = parseInt(localStorage.getItem('superkid_weekly_goal') || '3');
+    const watchedCount = Math.min(state.user.unlocked_index - 1, weeklyGoal);
+    const pct = Math.min((watchedCount / weeklyGoal) * 100, 100);
+
+    const bar = document.getElementById('challenge-progress-bar');
+    const txt = document.getElementById('challenge-progress-text');
+    if (bar) bar.style.width = `${pct}%`;
+    if (txt) txt.textContent = `${watchedCount} of ${weeklyGoal} done`;
+}
+
+function setupHeroCarousel() {
+    const track = document.getElementById('hero-carousel-track');
+    const dots = document.querySelectorAll('.carousel-dot');
+    if (!track) return;
+
+    let currentSlide = 0;
+    const totalSlides = 3;
+
+    function goToSlide(index) {
+        currentSlide = ((index % totalSlides) + totalSlides) % totalSlides;
+        track.style.transform = `translateX(-${currentSlide * 100}%)`;
+        dots.forEach((d, i) => d.classList.toggle('active', i === currentSlide));
+    }
+
+    // Dot clicks
+    dots.forEach((dot, i) => {
+        dot.addEventListener('click', () => goToSlide(i));
+    });
+
+    // Touch swipe
+    let touchStartX = 0;
+    track.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+    track.addEventListener('touchend', e => {
+        const diff = touchStartX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 40) goToSlide(currentSlide + (diff > 0 ? 1 : -1));
+    });
+
+    // Auto-advance every 5s
+    setInterval(() => goToSlide(currentSlide + 1), 5000);
+}
+
+function setupQuickLaunchGrid() {
+    document.querySelectorAll('.quick-launch-btn').forEach(btn => {
+        const target = btn.dataset.nav;
+        if (!target) return;
+        btn.addEventListener('click', () => {
+            triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+            navigateTo(target);
+        });
+    });
+}
+
+/* =====================================================================
+   PARENT ADMIN PANEL (PIN-Gated Dashboard)
+   ===================================================================== */
+
+const DEFAULT_PIN = '1234';
+let adminPinBuffer = '';
+
+function setupParentAdminPanel() {
+    const gate = document.getElementById('admin-pin-gate');
+    const dashboard = document.getElementById('admin-dashboard');
+    const dots = document.querySelectorAll('#admin-pin-dots .pin-dot');
+    const keys = document.querySelectorAll('.pin-key');
+
+    if (!gate) return;
+
+    function updateDots() {
+        dots.forEach((dot, i) => {
+            dot.classList.toggle('filled', i < adminPinBuffer.length);
+            dot.classList.remove('error');
+        });
+    }
+
+    function shakeDotsError() {
+        dots.forEach(d => { d.classList.remove('filled'); d.classList.add('error'); });
+        setTimeout(() => {
+            adminPinBuffer = '';
+            dots.forEach(d => d.classList.remove('error'));
+        }, 700);
+    }
+
+    function submitPin() {
+        const savedPin = localStorage.getItem('superkid_parent_pin') || DEFAULT_PIN;
+        if (adminPinBuffer === savedPin) {
+            gate.style.display = 'none';
+            dashboard.classList.remove('hidden');
+            populateAdminDashboard();
+        } else {
+            shakeDotsError();
+        }
+    }
+
+    keys.forEach(key => {
+        key.addEventListener('click', () => {
+            const k = key.dataset.key;
+            if (k === 'clear') {
+                adminPinBuffer = adminPinBuffer.slice(0, -1);
+                updateDots();
+            } else if (k === 'submit') {
+                submitPin();
+            } else if (adminPinBuffer.length < 4) {
+                adminPinBuffer += k;
+                updateDots();
+                if (adminPinBuffer.length === 4) {
+                    setTimeout(submitPin, 150);
+                }
+            }
+        });
+    });
+
+    // Back & Lock buttons
+    const backBtn = document.getElementById('admin-back-btn');
+    const lockBtn = document.getElementById('admin-lock-btn');
+    if (backBtn) backBtn.addEventListener('click', () => navigateTo('home'));
+    if (lockBtn) lockBtn.addEventListener('click', () => {
+        dashboard.classList.add('hidden');
+        gate.style.display = 'flex';
+        adminPinBuffer = '';
+        updateDots();
+    });
+
+    // Goal stepper
+    let goalEpisodes = parseInt(localStorage.getItem('superkid_weekly_goal') || '3');
+    const goalVal = document.getElementById('goal-episodes-val');
+    if (goalVal) goalVal.textContent = goalEpisodes;
+
+    const decBtn = document.getElementById('goal-dec-btn');
+    const incBtn = document.getElementById('goal-inc-btn');
+    if (decBtn) decBtn.addEventListener('click', () => {
+        goalEpisodes = Math.max(1, goalEpisodes - 1);
+        if (goalVal) goalVal.textContent = goalEpisodes;
+    });
+    if (incBtn) incBtn.addEventListener('click', () => {
+        goalEpisodes = Math.min(7, goalEpisodes + 1);
+        if (goalVal) goalVal.textContent = goalEpisodes;
+    });
+
+    const saveGoalBtn = document.getElementById('admin-save-goal-btn');
+    const goalStatus = document.getElementById('admin-goal-status');
+    if (saveGoalBtn) saveGoalBtn.addEventListener('click', () => {
+        localStorage.setItem('superkid_weekly_goal', goalEpisodes);
+        updateChallengeProgress();
+        if (goalStatus) {
+            goalStatus.textContent = '✅ Goal saved!';
+            setTimeout(() => { goalStatus.textContent = ''; }, 2500);
+        }
+    });
+
+    // Change PIN
+    const changePinBtn = document.getElementById('admin-change-pin-btn');
+    const pinInput = document.getElementById('admin-new-pin-input');
+    const pinStatus = document.getElementById('admin-pin-status');
+    if (changePinBtn && pinInput) {
+        changePinBtn.addEventListener('click', () => {
+            const newPin = pinInput.value.trim();
+            if (/^\d{4}$/.test(newPin)) {
+                localStorage.setItem('superkid_parent_pin', newPin);
+                pinInput.value = '';
+                if (pinStatus) {
+                    pinStatus.textContent = '✅ PIN updated!';
+                    setTimeout(() => { pinStatus.textContent = ''; }, 2500);
+                }
+            } else {
+                if (pinStatus) {
+                    pinStatus.style.color = '#ff6060';
+                    pinStatus.textContent = '❌ Enter a valid 4-digit PIN';
+                    setTimeout(() => { pinStatus.textContent = ''; pinStatus.style.color = '#4ade80'; }, 2500);
+                }
+            }
+        });
+    }
+}
+
+function populateAdminDashboard() {
+    const goalEpisodes = parseInt(localStorage.getItem('superkid_weekly_goal') || '3');
+    const goalVal = document.getElementById('goal-episodes-val');
+    if (goalVal) goalVal.textContent = goalEpisodes;
+
+    const childName = document.getElementById('admin-child-name');
+    const childLevel = document.getElementById('admin-child-level');
+    const coinsVal = document.getElementById('admin-coins-val');
+    const episodesWatched = document.getElementById('admin-episodes-watched');
+    const quizzesPassed = document.getElementById('admin-quizzes-passed');
+    const streakDays = document.getElementById('admin-streak-days');
+    const totalXP = document.getElementById('admin-total-xp');
+
+    if (childName) childName.textContent = state.user.display_name || 'Super Kid';
+    if (childLevel) childLevel.textContent = `Level ${state.user.level || 1} · ${state.user.xp || 0} XP`;
+    if (coinsVal) coinsVal.textContent = state.user.star_coins || 0;
+    if (episodesWatched) episodesWatched.textContent = Math.max(0, (state.user.unlocked_index || 1) - 1);
+
+    // Count passed quizzes (tracked by unlocked episodes)
+    const passed = state.quizzes ? state.quizzes.filter((q, i) => {
+        const ep = state.episodes[i];
+        return ep && ep.order_index < (state.user.unlocked_index || 1);
+    }).length : 0;
+    if (quizzesPassed) quizzesPassed.textContent = passed;
+
+    if (streakDays) streakDays.textContent = state.streak ? state.streak.daysCount : 1;
+
+    // Estimate total XP earned (current XP + 100 per level gained)
+    const lvl = state.user.level || 1;
+    const estimatedTotalXP = ((lvl - 1) * 100) + (state.user.xp || 0);
+    if (totalXP) totalXP.textContent = estimatedTotalXP;
+}
+
+// Override renderAdminView to use the new PIN dashboard
+// (called by navigateTo when routing to 'admin')
+const _oldRenderAdminView = renderAdminView;
+window._newRenderAdminView = function() {
+    const gate = document.getElementById('admin-pin-gate');
+    const dashboard = document.getElementById('admin-dashboard');
+    if (!gate) return; // new screen-admin not in DOM? fall back
+    // Reset to PIN gate on every navigation
+    gate.style.display = 'flex';
+    if (dashboard) dashboard.classList.add('hidden');
+    adminPinBuffer = '';
+    document.querySelectorAll('#admin-pin-dots .pin-dot').forEach(d => {
+        d.classList.remove('filled', 'error');
+    });
+};
+
+// Hook into DOMContentLoaded to set up all new home logic
+document.addEventListener('DOMContentLoaded', () => {}, { once: true });
+
+// Run once state and DOM are ready (appended after main DOMContentLoaded block)
+(function initMissionControlAndAdmin() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+    function init() {
+        setupMissionControlHome();
+        setupParentAdminPanel();
+
+        // Wire drawer-goto-admin to new panel
+        const adminDrawerBtn = document.getElementById('drawer-goto-admin');
+        if (adminDrawerBtn) {
+            // Clone to remove old listeners
+            const newBtn = adminDrawerBtn.cloneNode(true);
+            adminDrawerBtn.parentNode.replaceChild(newBtn, adminDrawerBtn);
+            newBtn.addEventListener('click', () => {
+                document.getElementById('settings-drawer')?.classList.remove('open');
+                document.getElementById('settings-drawer-overlay')?.classList.remove('active');
+                navigateTo('admin');
+            });
+        }
+    }
+})();
+
+/* =====================================================================
+   HOME V3 — GIZMO MASCOT HOME SCREEN LOGIC
+   ===================================================================== */
+
+function setupHomeV3() {
+    updateHomeV3Greeting();
+    updateHomeV3Stats();
+    updateHomeV3Verse();
+    setupHomeV3QuickLinks();
+}
+
+function updateHomeV3Greeting() {
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Good Morning! ☀️' : hour < 18 ? 'Good Afternoon! 🌤️' : 'Good Evening! 🌙';
+
+    const label = document.getElementById('home-greeting-label');
+    const name = document.getElementById('home-greeting-name');
+    const streakBadge = document.getElementById('hv3-streak-count');
+    const xpBadge = document.getElementById('hv3-xp-count');
+
+    if (label) label.textContent = greeting;
+    if (name) name.textContent = state.user.display_name || 'Super Kid';
+    if (streakBadge) streakBadge.textContent = state.streak ? state.streak.daysCount : 1;
+    if (xpBadge) xpBadge.textContent = state.user.star_coins || 0;
+}
+
+function updateHomeV3Stats() {
+    // Coin amount
+    const coinEl = document.getElementById('hv3-coin-amount');
+    if (coinEl) coinEl.textContent = state.user.star_coins || 0;
+
+    // XP bar
+    const xpBar = document.getElementById('hv3-xp-bar');
+    const xpGoalText = document.getElementById('hv3-xp-goal-text');
+    const xpPct = state.user.xp || 0;
+    if (xpBar) xpBar.style.width = `${xpPct}%`;
+    if (xpGoalText) xpGoalText.textContent = `LV.${state.user.level || 1} · ${state.user.xp || 0}/100 XP`;
+
+    // Bubble stats
+    const episodesEl = document.getElementById('hv3-episodes-val');
+    const levelEl = document.getElementById('hv3-level-val');
+    const streakEl = document.getElementById('hv3-streak-val');
+
+    if (episodesEl) episodesEl.textContent = Math.max(0, (state.user.unlocked_index || 1) - 1);
+    if (levelEl) levelEl.textContent = state.user.level || 1;
+    if (streakEl) streakEl.textContent = state.streak ? state.streak.daysCount : 1;
+}
+
+function updateHomeV3Verse() {
+    const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+    const verses = typeof DAILY_VERSES !== 'undefined' ? DAILY_VERSES : [
+        { text: 'For God so loved the world that he gave his one and only Son.', ref: 'John 3:16' }
+    ];
+    const verse = verses[dayOfYear % verses.length];
+    const pill = document.getElementById('hv3-verse-pill-text');
+    if (pill) pill.textContent = `"${verse.text.substring(0, 60)}${verse.text.length > 60 ? '…' : ''}" — ${verse.ref}`;
+}
+
+function setupHomeV3QuickLinks() {
+    document.querySelectorAll('.hv3-quick-link, .hv3-bubble').forEach(btn => {
+        const target = btn.dataset.nav;
+        if (!target) return;
+        btn.addEventListener('click', () => {
+            if (typeof triggerBubblePopFX === 'function') {
+                triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
+            }
+            navigateTo(target);
+        });
+    });
+}
+
+// Initialize home v3 when DOM is ready
+(function() {
+    function initV3() {
+        if (typeof state !== 'undefined') {
+            setupHomeV3();
+        }
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initV3);
+    } else {
+        setTimeout(initV3, 100);
+    }
+})();
 
