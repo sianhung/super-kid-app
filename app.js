@@ -2253,7 +2253,9 @@ function createYoutubePlayer(episode) {
             rel: 0,             // Hides recommendations at end of video
             showinfo: 0,        // Hides video info
             iv_load_policy: 3,  // Hides interactive annotations
-            playsinline: 1      // Forces inline playback on mobile
+            playsinline: 1,     // Forces inline playback on mobile
+            origin: window.location.origin, // Crucial for WebView playback
+            widget_referrer: window.location.href
         },
         events: {
             'onReady': (event) => {
