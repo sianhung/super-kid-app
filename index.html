@@ -25,6 +25,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <!-- Static YouTube Iframe Player API -->
     <script src="https://www.youtube.com/iframe_api"></script>
+    <!-- Supabase JS Client library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <!-- Liquid Glass Wallpaper — animated fluid orbs (Samsung / Apple style) -->
@@ -75,6 +77,7 @@
                     <img src="assets/mascot.png" alt="Gizmo" class="mascot-img">
                     <div id="equipped-accessory" class="equipped-overlay"></div>
                 </div>
+                <div id="header-avatar-level-badge" class="header-avatar-level-badge">LV.1</div>
             </div>
         </header>
 
@@ -83,70 +86,159 @@
 
             <!-- SCREEN: Home Screen Dashboard — Gizmo Mission Control -->
             <section id="screen-home" class="app-screen active">
-                <div class="home-v3">
+                <div class="home-v3 cockpit-dashboard">
 
-                    <!-- Soft ambient background blobs -->
-                    <div class="home-blob home-blob-1"></div>
-                    <div class="home-blob home-blob-2"></div>
-                    <div class="home-blob home-blob-3"></div>
-
-                    <!-- TOP ROW: Greeting + Badges -->
-                    <div class="home-top-row">
-                        <div class="home-greeting-block">
-                            <p class="hv3-greeting-label" id="home-greeting-label">Good Morning! ☀️</p>
-                            <h2 class="hv3-greeting-name" id="home-greeting-name">Super Kid</h2>
-                        </div>
-                        <div class="home-badges-block">
-                            <div class="hv3-badge hv3-badge-fire" id="home-streak-badge">🔥 <span id="hv3-streak-count">1</span></div>
-                            <div class="hv3-badge hv3-badge-xp" id="hv3-xp-badge">⚡ <span id="hv3-xp-count">0</span></div>
-                        </div>
-                    </div>
-
-                    <!-- CENTER: Big Gizmo Mascot -->
-                    <div class="home-mascot-stage">
-                        <div class="home-mascot-glow"></div>
-                        <img src="assets/mascot.png" alt="Gizmo" class="hv3-mascot-img" id="hv3-gizmo-img">
-                        <div class="home-mascot-shadow"></div>
-                    </div>
-
-                    <!-- FROSTED GLASS COIN CARD -->
-                    <div class="hv3-coin-card">
-                        <p class="hv3-coin-label">Star Coins Earned</p>
-                        <div class="hv3-coin-value-row">
-                            <span class="hv3-coin-icon">⚡</span>
-                            <span class="hv3-coin-amount" id="hv3-coin-amount">0</span>
-                        </div>
-                        <div class="hv3-coin-goal-row">
-                            <div class="hv3-coin-progress-wrap">
-                                <div class="hv3-coin-progress-bar" id="hv3-xp-bar"></div>
+                    <!-- Main cockpit bezel frame -->
+                    <div class="cockpit-frame">
+                        
+                        <!-- Left Panel: Greeting Card + Treasure Chest -->
+                        <div class="cockpit-panel cockpit-left">
+                            
+                            <!-- Greeting & Level Progress Card -->
+                            <div class="cockpit-card student-card">
+                                <div class="student-avatar-wrap">
+                                    <div class="student-avatar-orb">👤</div>
+                                </div>
+                                <div class="student-info">
+                                    <p class="student-greeting" id="home-greeting-label">Good Evening,</p>
+                                    <h3 class="student-name" id="home-greeting-name">Leo Starry!</h3>
+                                    <div class="student-stats">
+                                        <div class="student-lv-row">
+                                            <span class="stat-badge-lvl">Lv.1</span>
+                                            <div class="student-xp-track">
+                                                <div class="student-xp-fill" id="hv3-xp-bar"></div>
+                                            </div>
+                                        </div>
+                                        <p class="student-stats-text" id="hv3-xp-goal-text">LV.1 · 100 XP</p>
+                                    </div>
+                                </div>
                             </div>
-                            <span class="hv3-coin-goal-text" id="hv3-xp-goal-text">LV.1 · 0/100 XP</span>
+                            
+                            <!-- 3D Treasure Chest Overflowing with Gold Coins -->
+                            <div class="treasure-chest-container">
+                                <div class="treasure-chest-box">
+                                    <div class="treasure-glow"></div>
+                                    
+                                    <!-- Stylized CSS 3D treasure chest -->
+                                    <div class="chest-box">
+                                        <div class="chest-lid"></div>
+                                        <div class="chest-body">
+                                            <div class="coins-overflow"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- The Bronze Value Plaque -->
+                                    <div class="bronze-plaque">
+                                        <span class="plaque-value" id="hv3-coin-amount">100</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Progress row / Horizontal statistics container -->
+                            <div class="cockpit-stats-bubbles">
+                                <div class="stats-mini-bubble" id="btn-goto-watch-direct">
+                                    <span class="bubble-icon">🎬</span>
+                                    <div class="bubble-info">
+                                        <span class="bubble-num" id="hv3-episodes-val">0</span>
+                                        <span class="bubble-txt">Episodes</span>
+                                    </div>
+                                </div>
+                                <div class="stats-mini-bubble" id="btn-goto-games-direct">
+                                    <span class="bubble-icon">⬢</span>
+                                    <div class="bubble-info">
+                                        <span class="bubble-num" id="hv3-level-val">1</span>
+                                        <span class="bubble-txt">Level</span>
+                                    </div>
+                                </div>
+                                <div class="stats-mini-bubble" id="btn-goto-bible-direct">
+                                    <span class="bubble-icon">🔥</span>
+                                    <div class="bubble-info">
+                                        <span class="bubble-num" id="hv3-streak-val">1</span>
+                                        <span class="bubble-txt">Day Streak</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
                         </div>
-                    </div>
-
-                    <!-- BUBBLE STATS ROW -->
-                    <div class="hv3-bubble-stats">
-                        <button type="button" class="hv3-bubble" data-nav="dashboard">
-                            <span class="hv3-bubble-icon">🎬</span>
-                            <span class="hv3-bubble-val" id="hv3-episodes-val">0</span>
-                            <span class="hv3-bubble-label">Episodes</span>
-                        </button>
-                        <button type="button" class="hv3-bubble hv3-bubble-center" data-nav="games">
-                            <span class="hv3-bubble-icon">🏆</span>
-                            <span class="hv3-bubble-val" id="hv3-level-val">1</span>
-                            <span class="hv3-bubble-label">Level</span>
-                        </button>
-                        <button type="button" class="hv3-bubble" data-nav="bible">
-                            <span class="hv3-bubble-icon">🔥</span>
-                            <span class="hv3-bubble-val" id="hv3-streak-val">1</span>
-                            <span class="hv3-bubble-label">Day Streak</span>
-                        </button>
-                    </div>
-
-                    <!-- TODAY'S VERSE pill -->
-                    <div class="hv3-verse-pill">
-                        <span class="hv3-verse-pill-icon">📖</span>
-                        <span class="hv3-verse-pill-text" id="hv3-verse-pill-text">"For God so loved the world…" — John 3:16</span>
+                        
+                        <!-- Center Panel: Gizmo Mascot Stage + Carved Scripture Badge -->
+                        <div class="cockpit-panel cockpit-center">
+                            <div class="mascot-window-stage">
+                                <div class="mascot-stage-ambient-glow"></div>
+                                <div class="mascot-stage-glass-window">
+                                    <img src="assets/mascot.png" alt="Gizmo" class="hv3-mascot-img" id="hv3-gizmo-img">
+                                </div>
+                            </div>
+                            
+                            <!-- Wood carved Scripture plaque -->
+                            <div class="wood-scripture-plaque">
+                                <div class="wood-plaque-inner">
+                                    <p class="wood-verse-text" id="hv3-verse-pill-text">"For God so loved the world…" — John 3:16</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Panel: Vertical High-Tech Action Buttons -->
+                        <div class="cockpit-panel cockpit-right">
+                            
+                            <!-- MISSION HUB (clicks Home) -->
+                            <button type="button" class="arcade-action-button theme-gold-button" id="home-hud-goto-home">
+                                <div class="arcade-action-icon-badge gold-badge">
+                                    <span>🏠</span>
+                                </div>
+                                <div class="arcade-action-text-body">
+                                    <span>MISSION HUB</span>
+                                </div>
+                            </button>
+                            
+                            <!-- ARCADE (clicks Games) -->
+                            <button type="button" class="arcade-action-button theme-blue-button" id="home-hud-goto-games">
+                                <div class="arcade-action-icon-badge silver-badge">
+                                    <span>🎮</span>
+                                </div>
+                                <div class="arcade-action-text-body">
+                                    <span>ARCADE</span>
+                                </div>
+                            </button>
+                            
+                            <!-- SCRIPTURE QUEST (clicks Bible) -->
+                            <button type="button" class="arcade-action-button theme-brown-button" id="home-hud-goto-bible">
+                                <div class="arcade-action-icon-badge red-badge">
+                                    <span>📖</span>
+                                </div>
+                                <div class="arcade-action-text-body">
+                                    <span>SCRIPTURE QUEST</span>
+                                </div>
+                            </button>
+                            
+                            <!-- CHALLENGES (clicks Quests) -->
+                            <button type="button" class="arcade-action-button theme-brown-button" id="home-hud-goto-quests">
+                                <div class="arcade-action-icon-badge gold-badge">
+                                    <span>⚔️</span>
+                                </div>
+                                <div class="arcade-action-text-body">
+                                    <span>CHALLENGES</span>
+                                </div>
+                            </button>
+                            
+                            <!-- ADVENTURES (clicks Watch) -->
+                            <button type="button" class="arcade-action-button theme-blue-button" id="home-hud-goto-watch">
+                                <div class="arcade-action-icon-badge blue-badge">
+                                    <span>📺</span>
+                                </div>
+                                <div class="arcade-action-text-body">
+                                    <span>ADVENTURES</span>
+                                </div>
+                            </button>
+                            
+                            <!-- Version Badge -->
+                            <div class="cockpit-version-tag">
+                                <span>Super Kid</span>
+                                <span class="tag-sub">Bible Adventures v1.0.0</span>
+                            </div>
+                            
+                        </div>
+                        
                     </div>
 
                 </div>
@@ -450,24 +542,24 @@
                         <div class="games-arcade-card" id="play-quizzes-card">
                             <div class="arcade-card-icon-wrap">
                                 <svg class="neon-icon trivia-neon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <g filter="url(#neon-glow-cyan)">
+                                    <g filter="url(#neon-glow-pink-brain)">
                                         <!-- Left Brain hemisphere -->
-                                        <path d="M32 14C23.5 14 18 19.5 18 27C18 32 21.5 35 25 36C23 38 21.5 41.5 24 45C27 49.5 32 49 32 45" stroke="#00f0ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M32 14C23.5 14 18 19.5 18 27C18 32 21.5 35 25 36C23 38 21.5 41.5 24 45C27 49.5 32 49 32 45" stroke="#ff007f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                                         <!-- Right Brain hemisphere -->
-                                        <path d="M32 14C40.5 14 46 19.5 46 27C46 32 42.5 35 39 36C41 38 42.5 41.5 40 45C37 49.5 32 49 32 45" stroke="#00f0ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M32 14C40.5 14 46 19.5 46 27C46 32 42.5 35 39 36C41 38 42.5 41.5 40 45C37 49.5 32 49 32 45" stroke="#ff007f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                                         <!-- Center line split -->
-                                        <path d="M32 14V45" stroke="#00f0ff" stroke-width="1.5" stroke-dasharray="2 3"/>
+                                        <path d="M32 14V45" stroke="#ff007f" stroke-width="1.5" stroke-dasharray="2 3"/>
                                         <!-- Inner details left -->
-                                        <path d="M23 23C27 24 28 21 30 22" stroke="#00f0ff" stroke-width="2" stroke-linecap="round"/>
-                                        <path d="M22 30C26 31 27 28 29 29" stroke="#00f0ff" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M23 23C27 24 28 21 30 22" stroke="#ff007f" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M22 30C26 31 27 28 29 29" stroke="#ff007f" stroke-width="2" stroke-linecap="round"/>
                                         <!-- Inner details right -->
-                                        <path d="M41 23C37 24 36 21 34 22" stroke="#00f0ff" stroke-width="2" stroke-linecap="round"/>
-                                        <path d="M42 30C38 31 37 28 35 29" stroke="#00f0ff" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M41 23C37 24 36 21 34 22" stroke="#ff007f" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M42 30C38 31 37 28 35 29" stroke="#ff007f" stroke-width="2" stroke-linecap="round"/>
                                         <!-- Lightning/Idea spark above -->
-                                        <path d="M32 6V10M28 8L30 9M36 8L34 9" stroke="#00f0ff" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M32 6V10M28 8L30 9M36 8L34 9" stroke="#ff007f" stroke-width="2" stroke-linecap="round"/>
                                     </g>
                                     <defs>
-                                        <filter id="neon-glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+                                        <filter id="neon-glow-pink-brain" x="-20%" y="-20%" width="140%" height="140%">
                                             <feGaussianBlur stdDeviation="3" result="blur"/>
                                             <feMerge>
                                                 <feMergeNode in="blur"/>
@@ -1258,6 +1350,7 @@
                 
                 <div class="login-footer-links">
                     <a href="#" id="login-create-account" class="login-footer-link">Create Account</a>
+                    <a href="#" id="login-guest-btn" class="login-footer-link" style="color: var(--sb-yellow); font-weight: bold;">Play as Guest 🎮</a>
                     <a href="#" id="login-help" class="login-footer-link">Help</a>
                 </div>
             </div>
@@ -1297,6 +1390,7 @@
                 
                 <div class="login-footer-links">
                     <a href="#" id="signup-back-to-login" class="login-footer-link">Back to Log In</a>
+                    <a href="#" id="signup-guest-btn" class="login-footer-link" style="color: var(--sb-yellow); font-weight: bold;">Play as Guest 🎮</a>
                     <a href="#" id="signup-help" class="login-footer-link">Help</a>
                 </div>
             </div>
@@ -1304,13 +1398,41 @@
     </div>
 
     <script src="app.js"></script>
+    <!-- Bind gamified cockpit dashboard navigations -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mappings = {
+                'home-hud-goto-home': 'tab-home-btn',
+                'home-hud-goto-games': 'tab-games-btn',
+                'home-hud-goto-bible': 'tab-bible-btn',
+                'home-hud-goto-quests': 'tab-quests-btn',
+                'home-hud-goto-watch': 'tab-watch-btn',
+                'btn-goto-watch-direct': 'tab-watch-btn',
+                'btn-goto-games-direct': 'tab-games-btn',
+                'btn-goto-bible-direct': 'tab-bible-btn'
+            };
+            Object.keys(mappings).forEach(hudId => {
+                const hudBtn = document.getElementById(hudId);
+                const targetBtn = document.getElementById(mappings[hudId]);
+                if (hudBtn && targetBtn) {
+                    hudBtn.addEventListener('click', () => {
+                        targetBtn.click();
+                    });
+                }
+            });
+        });
+    </script>
     <!-- Register Progressive Web App Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
                     .then(reg => {
                         console.log('⚡ PWA Service Worker active:', reg.scope);
+                        
+                        // Programmatic active polling: check the server for sw.js updates every 3 seconds!
+                        setInterval(() => {
+                            reg.update().catch(err => console.log('SW Update check failed:', err));
+                        }, 3000);
                         
                         reg.addEventListener('updatefound', () => {
                             const newWorker = reg.installing;
@@ -1323,7 +1445,6 @@
                         });
                     })
                     .catch(err => console.error('❌ Service Worker registration failed:', err));
-            });
             
             let refreshing = false;
             navigator.serviceWorker.addEventListener('controllerchange', () => {

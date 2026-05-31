@@ -1,4 +1,4 @@
-const CACHE_NAME = 'super-kid-v12';
+const CACHE_NAME = 'super-kid-v15';
 const ASSETS = [
   './',
   './index.html',
@@ -15,7 +15,8 @@ const ASSETS = [
   './assets/portal_orb.png',
   './assets/visor.png',
   './assets/trio.png',
-  './assets/y2k_bg.png'
+  './assets/y2k_bg.png',
+  './assets/trivia_scroll_bg.png'
 ];
 
 // Cache all assets during install
@@ -63,7 +64,7 @@ self.addEventListener('fetch', (e) => {
     url.pathname.endsWith('styles.css')
   ) {
     e.respondWith(
-      fetch(e.request)
+      fetch(e.request, { cache: 'no-store' })
         .then((res) => {
           const clone = res.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));

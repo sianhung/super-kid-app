@@ -25,7 +25,9 @@ CREATE TABLE IF NOT EXISTS public.episodes (
     title TEXT NOT NULL,
     youtube_video_id TEXT NOT NULL, -- YouTube video identifier
     thumbnail_url TEXT NOT NULL,
-    order_index INTEGER UNIQUE NOT NULL -- Sequence number for locking/unlocking progress
+    order_index INTEGER UNIQUE NOT NULL, -- Sequence number for locking/unlocking progress
+    price INTEGER DEFAULT 0 CHECK (price >= 0),
+    description TEXT
 );
 
 -- C. Quizzes Table (Multiple Choice questions linked to episodes)
@@ -174,33 +176,39 @@ VALUES (
 
 -- Insert Mock Episodes
 -- Episode 1
-INSERT INTO public.episodes (id, title, youtube_video_id, thumbnail_url, order_index)
+INSERT INTO public.episodes (id, title, youtube_video_id, thumbnail_url, order_index, price, description)
 VALUES (
     'e1c12e87-0b1a-48d6-848e-653ea956bc01',
-    'Journey to the Bubble Planet!',
+    'ဖန်ဆင်းခြင်းအစ',
     'R9K2Sj76L38', -- Superbook Season 1 Episode 1 Clip
     'assets/episode1.png',
-    1
+    1,
+    0,
+    'Travel with Gizmo the magical bubble portal and learn the miraculous power of God''s love!'
 );
 
 -- Episode 2
-INSERT INTO public.episodes (id, title, youtube_video_id, thumbnail_url, order_index)
+INSERT INTO public.episodes (id, title, youtube_video_id, thumbnail_url, order_index, price, description)
 VALUES (
     'e2c23f88-1c2b-49e7-959f-764fb067cd02',
-    'The Rainbow Jellyfish Chase',
+    'ပေးဆပ်ခြင်းရဲ့ အကောင်းဆုံးလက်ဆောင်',
     'JtV_n6dMh_s', -- Superbook Season 1 Episode 2 Clip
     'assets/episode2.png',
-    2
+    2,
+    0,
+    'Chase the beautiful rainbow jellyfish as the cosmic ocean and discover why sharing brings joy!'
 );
 
 -- Episode 3
-INSERT INTO public.episodes (id, title, youtube_video_id, thumbnail_url, order_index)
+INSERT INTO public.episodes (id, title, youtube_video_id, thumbnail_url, order_index, price, description)
 VALUES (
     'e3c34a99-2d3c-4bf8-a6af-875fc178de03',
     'Mystery of the Floating Candies',
     'rC78Q7kYdDk', -- Superbook Season 1 Episode 3 Clip
     'assets/episode3.png',
-    3
+    3,
+    150,
+    'Solve the mysterious floating candies phenomenon while uncovering the secrets of kind hearts and sweet friendship!'
 );
 
 -- Insert Mock Quizzes (1 Quiz per episode, containing 2 questions each)

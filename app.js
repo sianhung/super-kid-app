@@ -3,6 +3,69 @@
    localStorage State Store, Canvas FX Particles, Audio Sim, Rewards Loop
    ===================================================================== */
 
+// --- DATABASE SYNC CONFIGURATION (SUPABASE) ---
+// To sync episodes, quizzes, contests, and submissions between the website 
+// and the phone APK in real-time, create a free project at supabase.com,
+// execute the 'db_init.sql' script in the Supabase SQL editor, and paste your credentials below:
+const SUPABASE_CONFIG = {
+    url: "",       // Paste your Supabase project URL here (e.g. "https://xyz.supabase.co")
+    anonKey: ""    // Paste your Supabase anon public API key here
+};
+
+let supabaseClient = null;
+if (SUPABASE_CONFIG.url && SUPABASE_CONFIG.anonKey && typeof window.supabase !== 'undefined') {
+    supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+    console.log("⚡ Supabase Sync Engine Initialized!");
+}
+
+function getDeterministicUUID(str) {
+    if (!str) return 'd8c2278e-6d1a-4c28-98e3-0d3a776c5b96'; // fallback to Leo Starry's seed UUID
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0;
+    }
+    let rawHex = Math.abs(hash).toString(16).padEnd(32, 'a');
+    return `${rawHex.slice(0,8)}-${rawHex.slice(8,12)}-4${rawHex.slice(12,15)}-a${rawHex.slice(15,18)}-${rawHex.slice(18,30)}`;
+}
+
+// --- UTILITY STABILITY & SECURITY HELPERS ---
+function safeInit(fn) {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fn);
+    } else {
+        try {
+            fn();
+        } catch (e) {
+            console.error("Initialization error:", e);
+        }
+    }
+}
+
+function safeJsonParse(str, fallback = null) {
+    if (!str) return fallback;
+    try {
+        return JSON.parse(str);
+    } catch (e) {
+        console.error("JSON Parse Error in local storage:", e);
+        return fallback;
+    }
+}
+
+function sanitizeHTML(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>"']/g, function(m) {
+        switch (m) {
+            case '&': return '&amp;';
+            case '<': return '&lt;';
+            case '>': return '&gt;';
+            case '"': return '&quot;';
+            case "'": return '&#039;';
+            default: return m;
+        }
+    });
+}
+
 // --- 1. LOCAL DATA SEED (Fallback Database Simulation) ---
 const MOCK_EPISODES = [
     {
@@ -165,17 +228,17 @@ class AppState {
         this.loadOrCreateState();
     }
 
+    syncDbToStorage() {
+        if (this._saveTimeout) clearTimeout(this._saveTimeout);
+        this._saveTimeout = setTimeout(() => {
+            localStorage.setItem('superkid_users_db', JSON.stringify(this.usersDb));
+        }, 50);
+    }
+
     loadOrCreateState() {
         // 1. Initialize user database if not present
-        let usersDb = [];
         const storedDb = localStorage.getItem('superkid_users_db');
-        if (storedDb) {
-            try {
-                usersDb = JSON.parse(storedDb);
-            } catch(e) {
-                usersDb = [];
-            }
-        }
+        let usersDb = safeJsonParse(storedDb, []);
         
         if (!usersDb || usersDb.length === 0) {
             // Seed default simulated user accounts
@@ -191,7 +254,8 @@ class AppState {
                     is_premium: true,
                     is_admin: true,
                     is_banned: false,
-                    ownedItems: []
+                    ownedItems: [],
+                    purchased_episodes: []
                 },
                 {
                     email: 'leo@gmail.com',
@@ -204,7 +268,8 @@ class AppState {
                     is_premium: false,
                     is_admin: false,
                     is_banned: false,
-                    ownedItems: []
+                    ownedItems: [],
+                    purchased_episodes: []
                 },
                 {
                     email: 'gizmo_fan@gmail.com',
@@ -217,7 +282,8 @@ class AppState {
                     is_premium: true,
                     is_admin: false,
                     is_banned: false,
-                    ownedItems: []
+                    ownedItems: [],
+                    purchased_episodes: []
                 },
                 {
                     email: 'test_banned@gmail.com',
@@ -230,37 +296,38 @@ class AppState {
                     is_premium: false,
                     is_admin: false,
                     is_banned: true,
-                    ownedItems: []
+                    ownedItems: [],
+                    purchased_episodes: []
                 }
             ];
             localStorage.setItem('superkid_users_db', JSON.stringify(usersDb));
         }
+        
+        this.usersDb = usersDb;
         
         // 2. Fetch logged in user email
         let loggedInEmail = localStorage.getItem('appUserEmail');
         
         // Force logout if banned
         if (loggedInEmail) {
-            const userRecord = usersDb.find(u => u.email.toLowerCase() === loggedInEmail.toLowerCase());
+            const userRecord = this.usersDb.find(u => u.email.toLowerCase() === loggedInEmail.toLowerCase());
             if (userRecord && userRecord.is_banned) {
                 localStorage.removeItem('appUserLoggedIn');
                 localStorage.removeItem('appUserEmail');
                 loggedInEmail = null;
                 alert("🚫 Your account has been banned by the Administrator.");
-                location.reload();
-                return;
             }
         }
         
-        // If not logged in at all, auto-login 'leo@gmail.com' as fallback guest
+        // If not logged in at all, load 'leo@gmail.com' profile as guest (but DO NOT flag as logged in)
         if (!loggedInEmail) {
             loggedInEmail = 'leo@gmail.com';
             localStorage.setItem('appUserEmail', loggedInEmail);
-            localStorage.setItem('appUserLoggedIn', 'true');
+            localStorage.removeItem('appUserLoggedIn'); // Ensure the login screen overlay triggers
         }
         
         // 3. Find or register user profile record
-        let userRecord = usersDb.find(u => u.email.toLowerCase() === loggedInEmail.toLowerCase());
+        let userRecord = this.usersDb.find(u => u.email.toLowerCase() === loggedInEmail.toLowerCase());
         if (!userRecord) {
             const rawName = loggedInEmail.split('@')[0];
             const formattedName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
@@ -275,24 +342,27 @@ class AppState {
                 is_premium: false,
                 is_admin: loggedInEmail.toLowerCase() === 'jsianhung@gmail.com',
                 is_banned: false,
-                ownedItems: []
+                ownedItems: [],
+                purchased_episodes: []
             };
-            usersDb.push(userRecord);
-            localStorage.setItem('superkid_users_db', JSON.stringify(usersDb));
+            this.usersDb.push(userRecord);
+            localStorage.setItem('superkid_users_db', JSON.stringify(this.usersDb));
         }
         
         // 4. Set state properties
         this.user = {
             id: userRecord.email,
+            email: userRecord.email,
             display_name: userRecord.display_name,
             star_coins: userRecord.star_coins,
             xp: userRecord.xp,
             level: userRecord.level,
-            avatar_custom_data: userRecord.avatar_custom_data,
-            unlocked_index: userRecord.unlocked_index,
+            avatar_custom_data: userRecord.avatar_custom_data || { equipped_gear: null },
+            unlocked_index: userRecord.unlocked_index || 1,
             is_premium: !!userRecord.is_premium,
             is_admin: userRecord.email.toLowerCase() === 'jsianhung@gmail.com',
-            is_banned: !!userRecord.is_banned
+            is_banned: !!userRecord.is_banned,
+            purchased_episodes: userRecord.purchased_episodes || []
         };
         this.ownedItems = userRecord.ownedItems || [];
         
@@ -302,7 +372,7 @@ class AppState {
 
         const storedEpisodes = localStorage.getItem('superkid_episodes');
         if (storedEpisodes) {
-            this.episodes = JSON.parse(storedEpisodes);
+            this.episodes = safeJsonParse(storedEpisodes, MOCK_EPISODES);
             // Upgrade path for new episodes
             if (this.episodes.length < MOCK_EPISODES.length) {
                 this.episodes = MOCK_EPISODES;
@@ -333,8 +403,7 @@ class AppState {
 
         const storedQuizzes = localStorage.getItem('superkid_quizzes');
         if (storedQuizzes) {
-            this.quizzes = JSON.parse(storedQuizzes);
-            // Upgrade path for new quizzes
+            this.quizzes = safeJsonParse(storedQuizzes, MOCK_QUIZZES);
             if (this.quizzes.length < MOCK_QUIZZES.length) {
                 this.quizzes = MOCK_QUIZZES;
                 this.saveQuizzes();
@@ -346,8 +415,7 @@ class AppState {
 
         const storedContests = localStorage.getItem('superkid_contests');
         if (storedContests) {
-            this.contests = JSON.parse(storedContests);
-            // Upgrade path for new contests
+            this.contests = safeJsonParse(storedContests, MOCK_CONTESTS);
             if (this.contests.length < MOCK_CONTESTS.length) {
                 this.contests = MOCK_CONTESTS;
                 this.saveContests();
@@ -361,7 +429,7 @@ class AppState {
 
         const storedSubmissions = localStorage.getItem('superkid_submissions');
         if (storedSubmissions) {
-            this.submissions = JSON.parse(storedSubmissions);
+            this.submissions = safeJsonParse(storedSubmissions, []);
         } else {
             this.submissions = [];
             this.saveSubmissions();
@@ -373,9 +441,10 @@ class AppState {
         // Streak Tracking
         const storedStreak = localStorage.getItem('superkid_streak');
         if (storedStreak) {
-            this.streak = JSON.parse(storedStreak);
-            // Migrate old format (completedDays array of booleans)
-            if (this.streak.completedDays && !this.streak.completedDates) {
+            this.streak = safeJsonParse(storedStreak, null);
+            if (!this.streak) {
+                this.resetStreak();
+            } else if (this.streak.completedDays && !this.streak.completedDates) {
                 const today = new Date();
                 this.streak.completedDates = [];
                 this.streak.completedDays.forEach((done, i) => {
@@ -389,14 +458,7 @@ class AppState {
                 this.saveStreak();
             }
         } else {
-            // Start with today as the first completed day
-            const todayStr = new Date().toISOString().split('T')[0];
-            this.streak = {
-                daysCount: 1,
-                weeksCount: 0,
-                completedDates: [todayStr]
-            };
-            this.saveStreak();
+            this.resetStreak();
         }
 
         // Non-persisted UI states
@@ -410,6 +472,349 @@ class AppState {
         
         // Calendar view state
         this.calendarViewDate = new Date();
+
+        // Run self-healing merge to reconcile any code updates with device cache
+        this.mergeCodeToCache();
+
+        // Start asynchronous background synchronization with the Supabase database (if configured)
+        this.syncWithCloudDatabase();
+    }
+
+    mergeCodeToCache() {
+        let updated = false;
+
+        // 1. Merge Episodes
+        MOCK_EPISODES.forEach(mockEp => {
+            const cachedEp = this.episodes.find(ep => ep.id === mockEp.id);
+            if (!cachedEp) {
+                this.episodes.push(JSON.parse(JSON.stringify(mockEp)));
+                updated = true;
+            } else {
+                if (cachedEp.title !== mockEp.title ||
+                    cachedEp.youtube_video_id !== mockEp.youtube_video_id ||
+                    cachedEp.thumbnail_url !== mockEp.thumbnail_url ||
+                    cachedEp.description !== mockEp.description ||
+                    cachedEp.price !== mockEp.price) {
+                    
+                    cachedEp.title = mockEp.title;
+                    cachedEp.youtube_video_id = mockEp.youtube_video_id;
+                    cachedEp.thumbnail_url = mockEp.thumbnail_url;
+                    cachedEp.description = mockEp.description;
+                    cachedEp.price = mockEp.price;
+                    updated = true;
+                }
+            }
+        });
+
+        // 2. Merge Quizzes
+        MOCK_QUIZZES.forEach(mockQuiz => {
+            const cachedQuiz = this.quizzes.find(q => q.episode_id === mockQuiz.episode_id);
+            if (!cachedQuiz) {
+                this.quizzes.push(JSON.parse(JSON.stringify(mockQuiz)));
+                updated = true;
+            } else {
+                const mockQuestionsStr = JSON.stringify(mockQuiz.questions);
+                const cachedQuestionsStr = JSON.stringify(cachedQuiz.questions);
+                if (mockQuestionsStr !== cachedQuestionsStr) {
+                    cachedQuiz.questions = JSON.parse(mockQuestionsStr);
+                    updated = true;
+                }
+            }
+        });
+
+        // 3. Merge Contests
+        MOCK_CONTESTS.forEach(mockContest => {
+            const cachedContest = this.contests.find(c => c.id === mockContest.id);
+            if (!cachedContest) {
+                this.contests.push(JSON.parse(JSON.stringify(mockContest)));
+                updated = true;
+            } else {
+                if (cachedContest.title !== mockContest.title ||
+                    cachedContest.description !== mockContest.description ||
+                    cachedContest.thumbnail_url !== mockContest.thumbnail_url ||
+                    cachedContest.points_reward !== mockContest.points_reward) {
+                    
+                    cachedContest.title = mockContest.title;
+                    cachedContest.description = mockContest.description;
+                    cachedContest.thumbnail_url = mockContest.thumbnail_url;
+                    cachedContest.points_reward = mockContest.points_reward;
+                    updated = true;
+                }
+            }
+        });
+
+        if (updated) {
+            console.log("⚡ Auto-Merge: Synced modified hardcoded content to local cache.");
+            this.saveEpisodes();
+            this.saveQuizzes();
+            this.saveContests();
+        }
+    }
+
+    async syncWithCloudDatabase() {
+        if (!supabaseClient) return;
+
+        console.log("🔄 Background Sync: Connecting to Supabase cloud...");
+        try {
+            // 1. Fetch Episodes
+            const { data: episodesData, error: epError } = await supabaseClient
+                .from('episodes')
+                .select('*')
+                .order('order_index', { ascending: true });
+
+            if (epError) throw epError;
+
+            if (episodesData && episodesData.length > 0) {
+                this.episodes = episodesData.map(ep => ({
+                    id: ep.id,
+                    title: ep.title,
+                    youtube_video_id: ep.youtube_video_id,
+                    thumbnail_url: ep.thumbnail_url,
+                    order_index: ep.order_index,
+                    price: ep.price !== undefined && ep.price !== null ? ep.price : 0,
+                    description: ep.description || ""
+                }));
+                this.saveEpisodes();
+            }
+
+            // 2. Fetch Quizzes
+            const { data: quizzesData, error: qError } = await supabaseClient
+                .from('quizzes')
+                .select('*');
+
+            if (qError) throw qError;
+
+            if (quizzesData) {
+                const groupedQuizzes = [];
+                quizzesData.forEach(q => {
+                    let epQuiz = groupedQuizzes.find(g => g.episode_id === q.episode_id);
+                    if (!epQuiz) {
+                        epQuiz = { episode_id: q.episode_id, questions: [] };
+                        groupedQuizzes.push(epQuiz);
+                    }
+                    epQuiz.questions.push({
+                        question_text: q.question_text,
+                        options: q.options,
+                        correct_option_index: q.correct_option_index,
+                        coin_reward: q.coin_reward
+                    });
+                });
+                if (groupedQuizzes.length > 0) {
+                    this.quizzes = groupedQuizzes;
+                    this.saveQuizzes();
+                }
+            }
+
+            // 3. Fetch Contests
+            const { data: contestsData, error: cError } = await supabaseClient
+                .from('contests')
+                .select('*');
+
+            if (cError) throw cError;
+
+            if (contestsData && contestsData.length > 0) {
+                this.contests = contestsData.map(c => ({
+                    id: c.id,
+                    title: c.title,
+                    description: c.description,
+                    thumbnail_url: c.thumbnail_url,
+                    points_reward: c.points_reward
+                }));
+                this.saveContests();
+            }
+
+            // 4. Fetch Submissions
+            const { data: submissionsData, error: sError } = await supabaseClient
+                .from('contest_submissions')
+                .select(`
+                    id,
+                    user_id,
+                    contest_id,
+                    submission_text,
+                    submission_attachment_url,
+                    status,
+                    created_at,
+                    users_profile (
+                        display_name
+                    ),
+                    contests (
+                        title,
+                        points_reward
+                    )
+                `);
+
+            if (sError) throw sError;
+
+            if (submissionsData) {
+                this.submissions = submissionsData.map(s => ({
+                    id: s.id,
+                    user_id: s.user_id,
+                    user_name: s.users_profile ? s.users_profile.display_name : "Unknown Student",
+                    contest_id: s.contest_id,
+                    contest_title: s.contests ? s.contests.title : "Bible Challenge",
+                    submission_text: s.submission_text || "",
+                    attachment_name: s.submission_attachment_url || "",
+                    status: s.status || "pending",
+                    points_reward: s.contests ? s.contests.points_reward : 200,
+                    created_at: s.created_at
+                }));
+                this.saveSubmissions();
+            }
+
+            console.log("✅ Background Sync: Loaded and cached cloud database updates successfully!");
+
+            // Refresh dynamic UI elements
+            if (typeof renderDashboard === 'function') renderDashboard();
+            if (typeof renderAdminManageView === 'function') renderAdminManageView();
+            if (typeof renderAdminQuizSelect === 'function') renderAdminQuizSelect();
+            if (typeof renderContests === 'function') renderContests();
+            if (typeof renderSubmissionsLedger === 'function') renderSubmissionsLedger();
+            if (typeof renderAdminSubmissionsTable === 'function') renderAdminSubmissionsTable();
+
+        } catch (err) {
+            console.warn("⚠️ Background sync paused or failed:", err.message);
+        }
+    }
+
+    async cloudUpsertEpisode(episode) {
+        if (!supabaseClient) return;
+        try {
+            const { error } = await supabaseClient
+                .from('episodes')
+                .upsert({
+                    id: episode.id,
+                    title: episode.title,
+                    youtube_video_id: episode.youtube_video_id,
+                    thumbnail_url: episode.thumbnail_url,
+                    order_index: episode.order_index,
+                    price: episode.price,
+                    description: episode.description
+                });
+            if (error) throw error;
+            console.log("☁️ Supabase: Episode successfully synchronized!");
+        } catch (err) {
+            console.error("❌ Supabase Upsert Episode error:", err.message);
+        }
+    }
+
+    async cloudDeleteEpisode(episodeId) {
+        if (!supabaseClient) return;
+        try {
+            const { error } = await supabaseClient
+                .from('episodes')
+                .delete()
+                .eq('id', episodeId);
+            if (error) throw error;
+            console.log("☁️ Supabase: Episode successfully deleted from cloud!");
+        } catch (err) {
+            console.error("❌ Supabase Delete Episode error:", err.message);
+        }
+    }
+
+    async cloudUpsertQuiz(quiz) {
+        if (!supabaseClient) return;
+        try {
+            // Clear existing questions for this episode in Supabase, and write the updated list
+            const { error: delError } = await supabaseClient
+                .from('quizzes')
+                .delete()
+                .eq('episode_id', quiz.episode_id);
+            if (delError) throw delError;
+
+            const questionsToInsert = quiz.questions.map(q => ({
+                episode_id: quiz.episode_id,
+                question_text: q.question_text,
+                options: q.options,
+                correct_option_index: q.correct_option_index,
+                coin_reward: q.coin_reward
+            }));
+
+            if (questionsToInsert.length > 0) {
+                const { error: insError } = await supabaseClient
+                    .from('quizzes')
+                    .insert(questionsToInsert);
+                if (insError) throw insError;
+            }
+            console.log("☁️ Supabase: Quizzes successfully synchronized!");
+        } catch (err) {
+            console.error("❌ Supabase Upsert Quiz error:", err.message);
+        }
+    }
+
+    async cloudUpsertContest(contest) {
+        if (!supabaseClient) return;
+        try {
+            const { error } = await supabaseClient
+                .from('contests')
+                .upsert({
+                    id: contest.id,
+                    title: contest.title,
+                    description: contest.description,
+                    thumbnail_url: contest.thumbnail_url,
+                    points_reward: contest.points_reward
+                });
+            if (error) throw error;
+            console.log("☁️ Supabase: Contest successfully synchronized!");
+        } catch (err) {
+            console.error("❌ Supabase Upsert Contest error:", err.message);
+        }
+    }
+
+    async cloudDeleteContest(contestId) {
+        if (!supabaseClient) return;
+        try {
+            const { error } = await supabaseClient
+                .from('contests')
+                .delete()
+                .eq('id', contestId);
+            if (error) throw error;
+            console.log("☁️ Supabase: Contest successfully deleted from cloud!");
+        } catch (err) {
+            console.error("❌ Supabase Delete Contest error:", err.message);
+        }
+    }
+
+    async cloudUpsertSubmission(submission) {
+        if (!supabaseClient) return;
+        try {
+            const userUuid = getDeterministicUUID(submission.user_id || 'leo@gmail.com');
+            
+            // First, make sure the user profile exists in public.users_profile to satisfy references check
+            const { error: profileError } = await supabaseClient
+                .from('users_profile')
+                .upsert({
+                    id: userUuid,
+                    display_name: submission.user_name || "Unknown Student",
+                    star_coins: this.user.star_coins
+                });
+            if (profileError) throw profileError;
+
+            const { error } = await supabaseClient
+                .from('contest_submissions')
+                .upsert({
+                    id: getDeterministicUUID(submission.id), // Ensure it is a valid UUID
+                    user_id: userUuid,
+                    contest_id: submission.contest_id,
+                    submission_text: submission.submission_text,
+                    submission_attachment_url: submission.attachment_name,
+                    status: submission.status
+                });
+            if (error) throw error;
+            console.log("☁️ Supabase: Contest Submission successfully synchronized!");
+        } catch (err) {
+            console.error("❌ Supabase Upsert Submission error:", err.message);
+        }
+    }
+
+
+    resetStreak() {
+        const todayStr = new Date().toISOString().split('T')[0];
+        this.streak = {
+            daysCount: 1,
+            weeksCount: 0,
+            completedDates: [todayStr]
+        };
+        this.saveStreak();
     }
 
     saveUser() {
@@ -426,27 +831,21 @@ class AppState {
         const loggedInEmail = localStorage.getItem('appUserEmail');
         if (!loggedInEmail) return;
         
-        let usersDb = [];
-        try {
-            usersDb = JSON.parse(localStorage.getItem('superkid_users_db') || '[]');
-        } catch(e) {
-            usersDb = [];
-        }
-        
-        let recordIndex = usersDb.findIndex(u => u.email.toLowerCase() === loggedInEmail.toLowerCase());
+        let recordIndex = this.usersDb.findIndex(u => u.email.toLowerCase() === loggedInEmail.toLowerCase());
         if (recordIndex !== -1) {
-            usersDb[recordIndex].display_name = this.user.display_name;
-            usersDb[recordIndex].star_coins = this.user.star_coins;
-            usersDb[recordIndex].xp = this.user.xp;
-            usersDb[recordIndex].level = this.user.level;
-            usersDb[recordIndex].avatar_custom_data = this.user.avatar_custom_data;
-            usersDb[recordIndex].unlocked_index = this.user.unlocked_index;
-            usersDb[recordIndex].is_premium = !!this.user.is_premium;
-            usersDb[recordIndex].is_admin = loggedInEmail.toLowerCase() === 'jsianhung@gmail.com';
-            usersDb[recordIndex].is_banned = !!this.user.is_banned;
-            usersDb[recordIndex].ownedItems = this.ownedItems;
+            this.usersDb[recordIndex].display_name = this.user.display_name;
+            this.usersDb[recordIndex].star_coins = this.user.star_coins;
+            this.usersDb[recordIndex].xp = this.user.xp;
+            this.usersDb[recordIndex].level = this.user.level;
+            this.usersDb[recordIndex].avatar_custom_data = this.user.avatar_custom_data;
+            this.usersDb[recordIndex].unlocked_index = this.user.unlocked_index;
+            this.usersDb[recordIndex].is_premium = !!this.user.is_premium;
+            this.usersDb[recordIndex].is_admin = loggedInEmail.toLowerCase() === 'jsianhung@gmail.com';
+            this.usersDb[recordIndex].is_banned = !!this.user.is_banned;
+            this.usersDb[recordIndex].ownedItems = this.ownedItems;
+            this.usersDb[recordIndex].purchased_episodes = this.user.purchased_episodes || [];
             
-            localStorage.setItem('superkid_users_db', JSON.stringify(usersDb));
+            this.syncDbToStorage();
         }
     }
 
@@ -468,6 +867,10 @@ class AppState {
 
     saveAdminAuth() {
         localStorage.setItem('superkid_admin_auth', this.isAdminLoggedIn ? 'true' : 'false');
+    }
+
+    saveStreak() {
+        localStorage.setItem('superkid_streak', JSON.stringify(this.streak));
     }
 
     // RPC Simulation: Increment Coins
@@ -596,6 +999,10 @@ class AppState {
         }
         if (xpLabel) {
             xpLabel.textContent = `LV.${this.user.level} (${this.user.xp}/100)`;
+        }
+        const avatarLevel = document.getElementById('header-avatar-level-badge');
+        if (avatarLevel) {
+            avatarLevel.textContent = `LV.${this.user.level}`;
         }
     }
 
@@ -744,7 +1151,7 @@ class AppState {
     }
 }
 
-const state = new AppState();
+let state = new AppState();
 
 // --- 3. CANVAS PARTICLES & CONFETTI ENGINE ---
 const canvas = document.getElementById('fx-canvas');
@@ -1221,11 +1628,7 @@ function navigateTo(screenId) {
                 localStorage.setItem('appUserLoggedIn', 'true');
                 
                 // Fetch/register user record
-                let usersDb = [];
-                try {
-                    usersDb = JSON.parse(localStorage.getItem('superkid_users_db') || '[]');
-                } catch(e) {}
-                
+                let usersDb = state.usersDb;
                 let userRecord = usersDb.find(u => u.email.toLowerCase() === 'jsianhung@gmail.com');
                 if (!userRecord) {
                     userRecord = {
@@ -1239,15 +1642,32 @@ function navigateTo(screenId) {
                         is_premium: true,
                         is_admin: true,
                         is_banned: false,
-                        ownedItems: []
+                        ownedItems: [],
+                        purchased_episodes: []
                     };
                     usersDb.push(userRecord);
-                    localStorage.setItem('superkid_users_db', JSON.stringify(usersDb));
+                    state.syncDbToStorage();
                 }
                 
-                // Set active user state and reload
+                // Set active user state and re-initialize in-memory
                 localStorage.setItem('superkid_user', JSON.stringify(userRecord));
-                location.reload();
+                
+                state = new AppState();
+                setupHomeV3();
+                if (typeof renderDashboard === 'function') renderDashboard();
+                if (typeof renderShop === 'function') renderShop();
+                if (typeof renderQuests === 'function') renderQuests();
+                
+                const headerCoins = document.getElementById('star-coin-label');
+                if (headerCoins) headerCoins.textContent = state.user.star_coins || 0;
+                const drawerCoins = document.getElementById('drawer-coins-val');
+                if (drawerCoins) drawerCoins.textContent = state.user.star_coins || 0;
+
+                state.isAdminLoggedIn = true;
+                state.saveAdminAuth();
+                renderAdminView();
+                
+                setTimeout(() => { navigateTo('admin'); }, 50);
                 return;
             }
             setTimeout(() => { navigateTo('dashboard'); }, 50);
@@ -1364,7 +1784,40 @@ if (watchTab) {
                 localStorage.removeItem('appUserEmail');
                 localStorage.removeItem('superkid_user');
                 localStorage.removeItem('superkid_owned');
-                location.reload();
+                
+                // Re-initialize state and redraw everything under unauthenticated guest profile
+                state = new AppState();
+                setupHomeV3();
+                if (typeof renderDashboard === 'function') renderDashboard();
+                if (typeof renderShop === 'function') renderShop();
+                if (typeof renderQuests === 'function') renderQuests();
+                
+                const headerCoins = document.getElementById('star-coin-label');
+                if (headerCoins) headerCoins.textContent = state.user.star_coins || 0;
+                const drawerCoins = document.getElementById('drawer-coins-val');
+                if (drawerCoins) drawerCoins.textContent = state.user.star_coins || 0;
+
+                navigateTo('home');
+
+                // Trigger the app-wide login overlay instantly
+                const overlay = document.getElementById('app-login-overlay');
+                const loginCard = document.getElementById('app-login-card');
+                const signupCard = document.getElementById('app-signup-card');
+                if (overlay && loginCard && signupCard) {
+                    overlay.style.display = 'flex';
+                    overlay.style.opacity = 1;
+                    loginCard.style.display = 'block';
+                    loginCard.style.opacity = 1;
+                    loginCard.style.transform = 'none';
+                    signupCard.style.display = 'none';
+                    document.getElementById('app-login-error').style.display = 'none';
+                    document.getElementById('login-email').value = '';
+                    document.getElementById('login-pass').value = '';
+                    gsap.fromTo(loginCard, 
+                        { scale: 0.9, opacity: 0 }, 
+                        { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.7)' }
+                    );
+                }
             }, 300);
         });
     }
@@ -1525,8 +1978,20 @@ if (watchTab) {
                             triggerBubblePopFX(window.innerWidth / 2, window.innerHeight / 2);
                         }
                         
-                        // Reload page or refresh greet
-                        location.reload();
+                        // Re-initialize state and redraw the views in-memory!
+                        state = new AppState();
+                        setupHomeV3();
+                        if (typeof renderDashboard === 'function') renderDashboard();
+                        if (typeof renderShop === 'function') renderShop();
+                        if (typeof renderQuests === 'function') renderQuests();
+                        if (typeof renderLeaderboard === 'function') renderLeaderboard();
+                        
+                        const headerCoins = document.getElementById('star-coin-label');
+                        if (headerCoins) headerCoins.textContent = state.user.star_coins || 0;
+                        const drawerCoins = document.getElementById('drawer-coins-val');
+                        if (drawerCoins) drawerCoins.textContent = state.user.star_coins || 0;
+
+                        navigateTo('home');
                     }
                 });
             }
@@ -1547,12 +2012,7 @@ if (watchTab) {
             }
 
             // Check if banned in database
-            let usersDb = [];
-            try {
-                usersDb = JSON.parse(localStorage.getItem('superkid_users_db') || '[]');
-            } catch(e) {}
-            
-            const record = usersDb.find(u => u.email.toLowerCase() === email.toLowerCase());
+            const record = state.usersDb.find(u => u.email.toLowerCase() === email.toLowerCase());
             if (record && record.is_banned) {
                 loginErrorDiv.innerHTML = '🚫 <strong>ACCESS DENIED:</strong> This account has been banned by the Administrator.';
                 loginErrorDiv.style.display = 'block';
@@ -1585,12 +2045,7 @@ if (watchTab) {
             }
 
             // Check if banned in database
-            let usersDb = [];
-            try {
-                usersDb = JSON.parse(localStorage.getItem('superkid_users_db') || '[]');
-            } catch(e) {}
-            
-            const record = usersDb.find(u => u.email.toLowerCase() === email.toLowerCase());
+            const record = state.usersDb.find(u => u.email.toLowerCase() === email.toLowerCase());
             if (record && record.is_banned) {
                 signupErrorDiv.innerHTML = '🚫 This email address is banned from registration.';
                 signupErrorDiv.style.display = 'block';
@@ -1645,6 +2100,20 @@ if (watchTab) {
         signupCloseBtn.addEventListener('click', () => {
             handleCloseAttempt(signupCard, signupErrorDiv);
         });
+    }
+
+    // Guest login event listeners
+    const loginGuestBtn = document.getElementById('login-guest-btn');
+    const signupGuestBtn = document.getElementById('signup-guest-btn');
+    const handleGuestLogin = (e) => {
+        e.preventDefault();
+        doSuccessLogin('leo@gmail.com');
+    };
+    if (loginGuestBtn) {
+        loginGuestBtn.addEventListener('click', handleGuestLogin);
+    }
+    if (signupGuestBtn) {
+        signupGuestBtn.addEventListener('click', handleGuestLogin);
     }
 })();
 
@@ -1764,7 +2233,40 @@ function forceUserLogout() {
     localStorage.removeItem('appUserEmail');
     localStorage.removeItem('superkid_user');
     localStorage.removeItem('superkid_owned');
-    location.reload();
+    
+    // Re-initialize state and redraw everything under unauthenticated guest profile
+    state = new AppState();
+    setupHomeV3();
+    if (typeof renderDashboard === 'function') renderDashboard();
+    if (typeof renderShop === 'function') renderShop();
+    if (typeof renderQuests === 'function') renderQuests();
+    
+    const headerCoins = document.getElementById('star-coin-label');
+    if (headerCoins) headerCoins.textContent = state.user.star_coins || 0;
+    const drawerCoins = document.getElementById('drawer-coins-val');
+    if (drawerCoins) drawerCoins.textContent = state.user.star_coins || 0;
+
+    navigateTo('home');
+
+    // Trigger the app-wide login overlay instantly
+    const overlay = document.getElementById('app-login-overlay');
+    const loginCard = document.getElementById('app-login-card');
+    const signupCard = document.getElementById('app-signup-card');
+    if (overlay && loginCard && signupCard) {
+        overlay.style.display = 'flex';
+        overlay.style.opacity = 1;
+        loginCard.style.display = 'block';
+        loginCard.style.opacity = 1;
+        loginCard.style.transform = 'none';
+        signupCard.style.display = 'none';
+        document.getElementById('app-login-error').style.display = 'none';
+        document.getElementById('login-email').value = '';
+        document.getElementById('login-pass').value = '';
+        gsap.fromTo(loginCard, 
+            { scale: 0.9, opacity: 0 }, 
+            { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.7)' }
+        );
+    }
 }
 
 function renderAdminUsers() {
@@ -1921,7 +2423,7 @@ function toggleUserAdmin(email) {
             state.user.is_admin = user.is_admin;
             state.saveState();
             if (!user.is_admin) {
-                location.reload();
+                forceUserLogout();
                 return;
             }
         }
@@ -2033,11 +2535,11 @@ function renderDashboard() {
                     <span class="episode-number-label">EPISODE ${episode.order_index} ${badgeTag}</span>
                 </div>
                 <div class="episode-card-content">
-                    <h2 class="episode-card-title">${episode.title}</h2>
-                    <p class="episode-card-desc">${episode.description}</p>
+                    <h2 class="episode-card-title">${sanitizeHTML(episode.title)}</h2>
+                    <p class="episode-card-desc">${sanitizeHTML(episode.description)}</p>
                 </div>
                 <div class="episode-card-thumb-wrap">
-                    <img src="${episode.thumbnail_url}" alt="${episode.title}" class="episode-card-thumb">
+                    <img src="${sanitizeHTML(episode.thumbnail_url)}" alt="${sanitizeHTML(episode.title)}" class="episode-card-thumb">
                     <div class="episode-card-image-label">SUPERBOOK GRN ANIMATION</div>
                 </div>
                 <div class="episode-card-buttons">
@@ -2067,11 +2569,11 @@ function renderDashboard() {
                     <span class="episode-number-label text-gold">⭐ PREMIUM CONTENT</span>
                 </div>
                 <div class="episode-card-content">
-                    <h2 class="episode-card-title text-gold">${episode.title}</h2>
-                    <p class="episode-card-desc">${episode.description}</p>
+                    <h2 class="episode-card-title text-gold">${sanitizeHTML(episode.title)}</h2>
+                    <p class="episode-card-desc">${sanitizeHTML(episode.description)}</p>
                 </div>
                 <div class="episode-card-thumb-wrap premium-price-wrap">
-                    <img src="${episode.thumbnail_url}" alt="${episode.title}" class="episode-card-thumb grayscale">
+                    <img src="${sanitizeHTML(episode.thumbnail_url)}" alt="${sanitizeHTML(episode.title)}" class="episode-card-thumb grayscale">
                     <div class="locked-overlay-banner premium-gate-banner">
                         <div class="price-coin-badge">⭐ ${episode.price} COINS</div>
                         <div class="lock-text-badge text-gold">COIN LOCK</div>
@@ -2118,11 +2620,11 @@ function renderDashboard() {
                     <span class="episode-number-label">EPISODE ${episode.order_index}</span>
                 </div>
                 <div class="episode-card-content">
-                    <h2 class="episode-card-title">${episode.title}</h2>
-                    <p class="episode-card-desc">${episode.description}</p>
+                    <h2 class="episode-card-title">${sanitizeHTML(episode.title)}</h2>
+                    <p class="episode-card-desc">${sanitizeHTML(episode.description)}</p>
                 </div>
                 <div class="episode-card-thumb-wrap">
-                    <img src="${episode.thumbnail_url}" alt="${episode.title}" class="episode-card-thumb">
+                    <img src="${sanitizeHTML(episode.thumbnail_url)}" alt="${sanitizeHTML(episode.title)}" class="episode-card-thumb">
                     <div class="episode-card-image-label">SUPERBOOK GRN ANIMATION</div>
                     <div class="locked-overlay-banner">
                         <div class="lock-badge-big">🔒</div>
@@ -2540,6 +3042,8 @@ function completeTransmission(textVal) {
     
     const newSubmission = {
         id: 'sub-' + Date.now(),
+        user_id: state.user.email,
+        user_name: state.user.display_name,
         contest_id: activeContest.id,
         contest_title: activeContest.title,
         submission_text: textVal,
@@ -2551,6 +3055,7 @@ function completeTransmission(textVal) {
     
     state.submissions.push(newSubmission);
     state.saveSubmissions();
+    state.cloudUpsertSubmission(newSubmission);
     
     // Points will be rewarded upon parent/admin approval in the Admin tab!
     
@@ -2901,6 +3406,7 @@ function approveSubmission(subId, x, y) {
     
     sub.status = 'approved';
     state.saveSubmissions();
+    state.cloudUpsertSubmission(sub);
     
     // Reward points to Leo Starry user account!
     state.incrementCoins(sub.points_reward);
@@ -2920,6 +3426,7 @@ function rejectSubmission(subId) {
     
     sub.status = 'rejected';
     state.saveSubmissions();
+    state.cloudUpsertSubmission(sub);
     
     // Re-render
     renderAdminSubmissions();
@@ -2944,11 +3451,11 @@ function renderAdminManageView() {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td class="ledger-contest">
-                    <strong>EP ${ep.order_index}: ${ep.title}</strong>
+                    <strong>EP ${ep.order_index}: ${sanitizeHTML(ep.title)}</strong>
                     ${ep.price && parseFloat(ep.price) > 0 ? `<br><span class="status-badge premium-badge">⭐ ${ep.price} Coins</span>` : '<br><span class="status-badge standard-badge">Free</span>'}
                 </td>
-                <td class="ledger-content"><code>${ep.youtube_video_id}</code></td>
-                <td class="ledger-content"><div class="desc-cell">${ep.description}</div></td>
+                <td class="ledger-content"><code>${sanitizeHTML(ep.youtube_video_id)}</code></td>
+                <td class="ledger-content"><div class="desc-cell">${sanitizeHTML(ep.description)}</div></td>
                 <td>
                     <div class="action-buttons-wrap">
                         <button class="sb-btn sb-btn-blue edit-ep-btn" data-id="${ep.id}">✏️ EDIT</button>
@@ -2972,8 +3479,8 @@ function renderAdminManageView() {
         state.contests.forEach(c => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td class="ledger-contest"><strong>${c.title}</strong></td>
-                <td class="ledger-content"><div class="desc-cell">${c.description}</div></td>
+                <td class="ledger-contest"><strong>${sanitizeHTML(c.title)}</strong></td>
+                <td class="ledger-content"><div class="desc-cell">${sanitizeHTML(c.description)}</div></td>
                 <td class="ledger-status">${c.points_reward} pts</td>
                 <td>
                     <div class="action-buttons-wrap">
@@ -3095,6 +3602,7 @@ function deleteEpisode(epId) {
     });
 
     state.saveEpisodes();
+    state.cloudDeleteEpisode(epId);
 
     // Adjust user progress lock
     if (state.user.unlocked_index > state.episodes.length) {
@@ -3182,6 +3690,7 @@ function deleteContest(contestId) {
     // Remove from state
     state.contests = state.contests.filter(item => item.id !== contestId);
     state.saveContests();
+    state.cloudDeleteContest(contestId);
 
     // Re-render
     renderContests();
@@ -3547,6 +4056,7 @@ function initEditModal() {
                     c.description = desc;
                     
                     state.saveContests();
+                    state.cloudUpsertContest(c);
                     closeEditModal();
                     
                     // Refresh dynamic UI elements
@@ -3563,7 +4073,7 @@ function initEditModal() {
 }
 
 // --- 10. APP STARTUP INITIALIZATION ---
-document.addEventListener('DOMContentLoaded', () => {
+safeInit(() => {
     initCustomUploaders();
     initEditModal();
     // Admin forms hookup
@@ -3604,6 +4114,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ep.price = price;
                     
                     state.saveEpisodes();
+                    state.cloudUpsertEpisode(ep);
                     
                     editingEpisodeId = null;
                     const submitBtn = document.getElementById('admin-ep-submit');
@@ -3628,6 +4139,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 state.episodes.push(newEpisode);
                 state.saveEpisodes();
+                state.cloudUpsertEpisode(newEpisode);
                 
                 alert(`🎉 Episode "${title}" successfully added!`);
             }
@@ -3704,6 +4216,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             state.saveQuizzes();
+            state.cloudUpsertQuiz(quizSet);
             
             // Reset form
             adminQuizForm.reset();
@@ -3748,6 +4261,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     c.description = desc;
                     
                     state.saveContests();
+                    state.cloudUpsertContest(c);
                     
                     editingContestId = null;
                     const submitBtn = document.getElementById('admin-contest-submit');
@@ -3770,6 +4284,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 state.contests.push(newContest);
                 state.saveContests();
+                state.cloudUpsertContest(newContest);
                 
                 alert(`🎉 Contest challenge successfully posted!`);
             }
@@ -4151,7 +4666,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dReset.addEventListener('click', () => {
             if (confirm('⚠️ Are you sure you want to reset all your progress?\nThis will clear all coins, XP, streak, and episode history.')) {
                 localStorage.clear();
-                location.reload();
+                forceUserLogout();
             }
         });
     }
@@ -5129,7 +5644,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
     }
 });
 
-document.addEventListener('DOMContentLoaded', () => {
+safeInit(() => {
     const pwaBtn = document.getElementById('pwa-install-btn');
     if (pwaBtn) {
         pwaBtn.addEventListener('click', async () => {
@@ -5465,16 +5980,9 @@ window._newRenderAdminView = function() {
     });
 };
 
-// Hook into DOMContentLoaded to set up all new home logic
-document.addEventListener('DOMContentLoaded', () => {}, { once: true });
-
 // Run once state and DOM are ready (appended after main DOMContentLoaded block)
 (function initMissionControlAndAdmin() {
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
+    safeInit(init);
     function init() {
         setupMissionControlHome();
         setupParentAdminPanel();
@@ -5572,10 +6080,6 @@ function setupHomeV3QuickLinks() {
             setupHomeV3();
         }
     }
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initV3);
-    } else {
-        setTimeout(initV3, 100);
-    }
+    safeInit(initV3);
 })();
 
