@@ -6676,57 +6676,162 @@ canvas#hero-dash-canvas {
    RESPONSIVE DUAL-ORIENTATION ADAPTERS (PORTRAIT vs LANDSCAPE)
    ===================================================================== */
 
-/* 1. PORTRAIT VIEW (Default stacked layout centered perfectly on phones) */
+/* 1. PORTRAIT VIEW (Optimized to center perfectly and fit in one page without scrolling) */
 @media (orientation: portrait), (max-width: 799px) {
+    .home-v3.cockpit-dashboard {
+        padding: 8px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+        height: 100% !important;
+        margin: 0 auto !important;
+    }
+
     .dashboard-layout-container {
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
         justify-content: center !important; /* Center elements vertically */
-        gap: 18px !important; /* Balanced gap between components */
+        gap: 10px !important; /* Tight gaps to fit in one page */
         height: 100% !important;
         width: 100% !important;
-        overflow-y: auto !important;
-        padding: 24px 12px !important; /* Comfortable phone padding */
+        max-width: 330px !important; /* Keep it narrow and perfectly centered */
+        margin: 0 auto !important;
+        overflow: hidden !important; /* Prevent scrollbar */
+        padding: 8px 0 !important;
         box-sizing: border-box !important;
     }
 
+    /* 1. Top Greeting Pill */
     .dashboard-greeting-pill {
         margin-top: 0 !important;
-        width: 95% !important;
-        max-width: 380px !important;
+        width: 100% !important;
+        max-width: 310px !important;
+        padding: 6px 18px !important;
+        border-width: 2.5px !important;
+        gap: 0px !important;
     }
 
+    .greeting-time-label {
+        font-size: 0.76rem !important;
+    }
+
+    .greeting-user-name {
+        font-size: 1.45rem !important;
+    }
+
+    /* 2. Mascot Stage */
     .dashboard-mascot-container {
         margin: 0 !important;
         flex: unset !important;
         min-height: unset !important;
+        height: 90px !important; /* Shorter mascot cloud */
     }
 
     .mascot-stage-cloud {
-        width: 220px !important;
-        height: 110px !important;
-        margin-bottom: 5px !important;
+        width: 150px !important;
+        height: 70px !important;
+        margin-bottom: 0 !important;
+        border-radius: 80px / 50px !important;
     }
 
+    .mascot-stage-cloud::before {
+        width: 78px !important;
+        height: 78px !important;
+        top: -28px !important;
+        left: 10px !important;
+    }
+
+    .mascot-stage-cloud::after {
+        width: 72px !important;
+        height: 72px !important;
+        top: -18px !important;
+        right: 8px !important;
+    }
+
+    .hv3-mascot-img {
+        width: 100px !important;
+        bottom: 12px !important;
+    }
+
+    /* 3. Navigation Menu Pills */
     .dashboard-menu-pills {
-        width: 95% !important;
-        max-width: 380px !important;
-        gap: 8px !important;
+        width: 100% !important;
+        max-width: 310px !important;
+        gap: 6px !important;
     }
 
+    .menu-pill-btn {
+        height: 40px !important; /* Compact button height */
+        border-width: 2.5px !important;
+        border-radius: 20px !important;
+    }
+
+    .menu-pill-icon-wrap {
+        width: 28px !important;
+        height: 28px !important;
+    }
+
+    .menu-pill-icon {
+        font-size: 0.9rem !important;
+    }
+
+    .menu-pill-text {
+        font-size: 0.82rem !important;
+        margin-right: 28px !important;
+    }
+
+    /* 4. Verse Cloud */
     .dashboard-verse-cloud {
-        width: 95% !important;
-        max-width: 380px !important;
+        width: 100% !important;
+        max-width: 310px !important;
         margin: 0 !important;
     }
 
+    .verse-cloud-bubble {
+        padding: 8px 16px !important;
+        border-radius: 20px !important;
+        border-width: 2.5px !important;
+    }
+
+    .verse-cloud-text {
+        font-size: 0.82rem !important;
+    }
+
+    /* 5. Bottom Navigation / Stats Bar */
     .dashboard-bottom-bar {
-        width: 95% !important;
-        max-width: 380px !important;
+        width: 100% !important;
+        max-width: 310px !important;
+        height: 52px !important; /* Sized to fit vertically */
+        border-width: 2.5px !important;
+        border-radius: 25px !important;
+        padding: 0 10px !important;
         margin-bottom: 0 !important;
     }
+
+    .bottom-bar-tab {
+        gap: 0px !important;
+    }
+
+    .bottom-bar-tab .tab-icon {
+        font-size: 0.88rem !important;
+    }
+
+    .bottom-bar-tab .tab-value {
+        font-size: 0.78rem !important;
+    }
+
+    .bottom-bar-tab .tab-title {
+        font-size: 0.52rem !important;
+    }
+
+    .bottom-bar-divider {
+        height: 24px !important;
+    }
 }
+
 
 /* 2. LANDSCAPE VIEW (Optimized side-by-side grid) */
 @media (min-width: 800px) and (orientation: landscape) {
