@@ -87,158 +87,122 @@
             <!-- SCREEN: Home Screen Dashboard — Gizmo Mission Control -->
             <section id="screen-home" class="app-screen active">
                 <div class="home-v3 cockpit-dashboard">
+                    
+                    <!-- Decorative Background Elements: Floating Clouds and Stars -->
+                    <div class="sky-background-elements">
+                        <div class="cloud-decor cloud-1"></div>
+                        <div class="cloud-decor cloud-2"></div>
+                        <div class="cloud-decor cloud-3"></div>
+                        <div class="cloud-decor cloud-4"></div>
+                        <div class="star-decor star-1">⭐</div>
+                        <div class="star-decor star-2">⭐</div>
+                        <div class="star-decor star-3">⭐</div>
+                        <div class="star-decor star-4">⭐</div>
+                    </div>
 
-                    <!-- Main cockpit bezel frame -->
-                    <div class="cockpit-frame">
+                    <!-- Main Dashboard Layout Container -->
+                    <div class="dashboard-layout-container">
                         
-                        <!-- Left Panel: Greeting Card + Treasure Chest -->
-                        <div class="cockpit-panel cockpit-left">
-                            
-                            <!-- Greeting & Level Progress Card -->
-                            <div class="cockpit-card student-card">
-                                <div class="student-avatar-wrap">
-                                    <div class="student-avatar-orb">👤</div>
-                                </div>
-                                <div class="student-info">
-                                    <p class="student-greeting" id="home-greeting-label">Good Evening,</p>
-                                    <h3 class="student-name" id="home-greeting-name">Leo Starry!</h3>
-                                    <div class="student-stats">
-                                        <div class="student-lv-row">
-                                            <span class="stat-badge-lvl">Lv.1</span>
-                                            <div class="student-xp-track">
-                                                <div class="student-xp-fill" id="hv3-xp-bar"></div>
-                                            </div>
-                                        </div>
-                                        <p class="student-stats-text" id="hv3-xp-goal-text">LV.1 · 100 XP</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- 3D Treasure Chest Overflowing with Gold Coins -->
-                            <div class="treasure-chest-container">
-                                <div class="treasure-chest-box">
-                                    <div class="treasure-glow"></div>
-                                    
-                                    <!-- Stylized CSS 3D treasure chest -->
-                                    <div class="chest-box">
-                                        <div class="chest-lid"></div>
-                                        <div class="chest-body">
-                                            <div class="coins-overflow"></div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- The Bronze Value Plaque -->
-                                    <div class="bronze-plaque">
-                                        <span class="plaque-value" id="hv3-coin-amount">100</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Progress row / Horizontal statistics container -->
-                            <div class="cockpit-stats-bubbles">
-                                <div class="stats-mini-bubble" id="btn-goto-watch-direct">
-                                    <span class="bubble-icon">🎬</span>
-                                    <div class="bubble-info">
-                                        <span class="bubble-num" id="hv3-episodes-val">0</span>
-                                        <span class="bubble-txt">Episodes</span>
-                                    </div>
-                                </div>
-                                <div class="stats-mini-bubble" id="btn-goto-games-direct">
-                                    <span class="bubble-icon">⬢</span>
-                                    <div class="bubble-info">
-                                        <span class="bubble-num" id="hv3-level-val">1</span>
-                                        <span class="bubble-txt">Level</span>
-                                    </div>
-                                </div>
-                                <div class="stats-mini-bubble" id="btn-goto-bible-direct">
-                                    <span class="bubble-icon">🔥</span>
-                                    <div class="bubble-info">
-                                        <span class="bubble-num" id="hv3-streak-val">1</span>
-                                        <span class="bubble-txt">Day Streak</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
+                        <!-- 1. Top Greeting Pill (Glassmorphic Capsule) -->
+                        <div class="dashboard-greeting-pill">
+                            <span class="greeting-time-label" id="home-greeting-label">Good Evening! 🌙</span>
+                            <h2 class="greeting-user-name" id="home-greeting-name">Leo Starry</h2>
                         </div>
-                        
-                        <!-- Center Panel: Gizmo Mascot Stage + Carved Scripture Badge -->
-                        <div class="cockpit-panel cockpit-center">
-                            <div class="mascot-window-stage">
+
+                        <!-- 2. Mascot Stage (Sitting on Cloud) -->
+                        <div class="dashboard-mascot-container">
+                            <div class="mascot-stage-cloud">
                                 <div class="mascot-stage-ambient-glow"></div>
-                                <div class="mascot-stage-glass-window">
-                                    <img src="assets/mascot.png" alt="Gizmo" class="hv3-mascot-img" id="hv3-gizmo-img">
+                                <img src="assets/mascot.png" alt="Gizmo" class="hv3-mascot-img" id="hv3-gizmo-img">
+                            </div>
+                        </div>
+
+                        <!-- 3. Navigation Menu Pill Stack -->
+                        <div class="dashboard-menu-pills">
+                            
+                            <!-- MISSION HUB -->
+                            <button type="button" class="menu-pill-btn" id="home-hud-goto-home">
+                                <div class="menu-pill-icon-wrap theme-blue">
+                                    <span class="menu-pill-icon">🏠</span>
+                                </div>
+                                <span class="menu-pill-text">MISSION HUB</span>
+                            </button>
+                            
+                            <!-- ARCADE -->
+                            <button type="button" class="menu-pill-btn" id="home-hud-goto-games">
+                                <div class="menu-pill-icon-wrap theme-blue">
+                                    <span class="menu-pill-icon">🎮</span>
+                                </div>
+                                <span class="menu-pill-text">ARCADE</span>
+                            </button>
+                            
+                            <!-- SCRIPTURE QUEST -->
+                            <button type="button" class="menu-pill-btn" id="home-hud-goto-bible">
+                                <div class="menu-pill-icon-wrap theme-blue">
+                                    <span class="menu-pill-icon">📖</span>
+                                </div>
+                                <span class="menu-pill-text">SCRIPTURE QUEST</span>
+                            </button>
+                            
+                            <!-- CHALLENGES -->
+                            <button type="button" class="menu-pill-btn" id="home-hud-goto-quests">
+                                <div class="menu-pill-icon-wrap theme-yellow">
+                                    <span class="menu-pill-icon">⭐</span>
+                                </div>
+                                <span class="menu-pill-text">CHALLENGES</span>
+                            </button>
+                            
+                            <!-- ADVENTURES -->
+                            <button type="button" class="menu-pill-btn" id="home-hud-goto-watch">
+                                <div class="menu-pill-icon-wrap theme-blue">
+                                    <span class="menu-pill-icon">🗺️</span>
+                                </div>
+                                <span class="menu-pill-text">ADVENTURES</span>
+                            </button>
+                            
+                        </div>
+
+                        <!-- 4. Verse Cloud (Puffy cloud verse bubble) -->
+                        <div class="dashboard-verse-cloud">
+                            <div class="verse-cloud-bubble">
+                                <p class="verse-cloud-text" id="hv3-verse-pill-text">"For God so loved the world…" — John 3:16</p>
+                            </div>
+                        </div>
+
+                        <!-- 5. Bottom Navigation / Stats Bar -->
+                        <div class="dashboard-bottom-bar">
+                            <div class="bottom-bar-tab" id="btn-goto-watch-direct">
+                                <span class="tab-icon">▶️</span>
+                                <div class="tab-label-wrap">
+                                    <span class="tab-value" id="hv3-episodes-val">0</span>
+                                    <span class="tab-title">Episodes</span>
                                 </div>
                             </div>
-                            
-                            <!-- Wood carved Scripture plaque -->
-                            <div class="wood-scripture-plaque">
-                                <div class="wood-plaque-inner">
-                                    <p class="wood-verse-text" id="hv3-verse-pill-text">"For God so loved the world…" — John 3:16</p>
+                            <div class="bottom-bar-divider"></div>
+                            <div class="bottom-bar-tab" id="btn-goto-games-direct">
+                                <span class="tab-icon">⭐</span>
+                                <div class="tab-label-wrap">
+                                    <span class="tab-value" id="hv3-level-val">1</span>
+                                    <span class="tab-title">Level</span>
+                                </div>
+                            </div>
+                            <div class="bottom-bar-divider"></div>
+                            <div class="bottom-bar-tab" id="btn-goto-bible-direct">
+                                <span class="tab-icon">📅</span>
+                                <div class="tab-label-wrap">
+                                    <span class="tab-value" id="hv3-streak-val">1</span>
+                                    <span class="tab-title">Day Streak</span>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Right Panel: Vertical High-Tech Action Buttons -->
-                        <div class="cockpit-panel cockpit-right">
-                            
-                            <!-- MISSION HUB (clicks Home) -->
-                            <button type="button" class="arcade-action-button theme-gold-button" id="home-hud-goto-home">
-                                <div class="arcade-action-icon-badge gold-badge">
-                                    <span>🏠</span>
-                                </div>
-                                <div class="arcade-action-text-body">
-                                    <span>MISSION HUB</span>
-                                </div>
-                            </button>
-                            
-                            <!-- ARCADE (clicks Games) -->
-                            <button type="button" class="arcade-action-button theme-blue-button" id="home-hud-goto-games">
-                                <div class="arcade-action-icon-badge silver-badge">
-                                    <span>🎮</span>
-                                </div>
-                                <div class="arcade-action-text-body">
-                                    <span>ARCADE</span>
-                                </div>
-                            </button>
-                            
-                            <!-- SCRIPTURE QUEST (clicks Bible) -->
-                            <button type="button" class="arcade-action-button theme-brown-button" id="home-hud-goto-bible">
-                                <div class="arcade-action-icon-badge red-badge">
-                                    <span>📖</span>
-                                </div>
-                                <div class="arcade-action-text-body">
-                                    <span>SCRIPTURE QUEST</span>
-                                </div>
-                            </button>
-                            
-                            <!-- CHALLENGES (clicks Quests) -->
-                            <button type="button" class="arcade-action-button theme-brown-button" id="home-hud-goto-quests">
-                                <div class="arcade-action-icon-badge gold-badge">
-                                    <span>⚔️</span>
-                                </div>
-                                <div class="arcade-action-text-body">
-                                    <span>CHALLENGES</span>
-                                </div>
-                            </button>
-                            
-                            <!-- ADVENTURES (clicks Watch) -->
-                            <button type="button" class="arcade-action-button theme-blue-button" id="home-hud-goto-watch">
-                                <div class="arcade-action-icon-badge blue-badge">
-                                    <span>📺</span>
-                                </div>
-                                <div class="arcade-action-text-body">
-                                    <span>ADVENTURES</span>
-                                </div>
-                            </button>
-                            
-                            <!-- Version Badge -->
-                            <div class="cockpit-version-tag">
-                                <span>Super Kid</span>
-                                <span class="tag-sub">Bible Adventures v1.0.0</span>
-                            </div>
-                            
-                        </div>
-                        
+                    </div>
+
+                    <!-- Hidden/Graceful backup nodes for non-breaking JS data binding -->
+                    <div style="display: none;">
+                        <span id="hv3-coin-amount">0</span>
+                        <div id="hv3-xp-bar" style="width: 0%;"></div>
+                        <span id="hv3-xp-goal-text">LV.1 · 0/100 XP</span>
                     </div>
 
                 </div>
