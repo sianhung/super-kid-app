@@ -1992,6 +1992,11 @@ if (watchTab) {
                         if (drawerCoins) drawerCoins.textContent = state.user.star_coins || 0;
 
                         navigateTo('home');
+                        
+                        // Dynamically update admin dashboard links visibility
+                        if (typeof updateAdminVisibility === 'function') {
+                            updateAdminVisibility();
+                        }
                     }
                 });
             }
@@ -2247,6 +2252,11 @@ function forceUserLogout() {
     if (drawerCoins) drawerCoins.textContent = state.user.star_coins || 0;
 
     navigateTo('home');
+
+    // Update admin dashboard links visibility on logout
+    if (typeof updateAdminVisibility === 'function') {
+        updateAdminVisibility();
+    }
 
     // Trigger the app-wide login overlay instantly
     const overlay = document.getElementById('app-login-overlay');
@@ -5980,6 +5990,29 @@ window._newRenderAdminView = function() {
     });
 };
 
+/* =====================================================================
+   ADMIN VIEW ACCESS CONTROL (Gated Visibility Logic)
+   ===================================================================== */
+function updateAdminVisibility() {
+    const isUserLoggedIn = localStorage.getItem('appUserLoggedIn') === 'true';
+    
+    let isAdmin = false;
+    if (isUserLoggedIn && typeof state !== 'undefined' && state.user) {
+        const isOwner = state.user.email.toLowerCase() === 'jsianhung@gmail.com';
+        isAdmin = isOwner || !!state.user.is_admin;
+    }
+
+    const drawerGotoAdmin = document.getElementById('drawer-goto-admin');
+    const settingsGotoAdminBtn = document.getElementById('settings-goto-admin-btn');
+    
+    if (drawerGotoAdmin) {
+        drawerGotoAdmin.style.setProperty('display', isAdmin ? 'flex' : 'none', 'important');
+    }
+    if (settingsGotoAdminBtn) {
+        settingsGotoAdminBtn.style.setProperty('display', isAdmin ? 'flex' : 'none', 'important');
+    }
+}
+
 // Run once state and DOM are ready (appended after main DOMContentLoaded block)
 (function initMissionControlAndAdmin() {
     safeInit(init);
@@ -5999,6 +6032,9 @@ window._newRenderAdminView = function() {
                 navigateTo('admin');
             });
         }
+
+        // Run initial role-based visibility control check
+        updateAdminVisibility();
     }
 })();
 
