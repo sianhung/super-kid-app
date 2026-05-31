@@ -6679,7 +6679,7 @@ canvas#hero-dash-canvas {
 /* 1. PORTRAIT VIEW (Optimized to center perfectly and fit in one page without scrolling) */
 @media (orientation: portrait), (max-width: 799px) {
     .home-v3.cockpit-dashboard {
-        padding: 8px !important;
+        padding: 10px 0 !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -6687,6 +6687,7 @@ canvas#hero-dash-canvas {
         width: 100% !important;
         height: 100% !important;
         margin: 0 auto !important;
+        background: transparent !important;
     }
 
     .dashboard-layout-container {
@@ -6694,11 +6695,11 @@ canvas#hero-dash-canvas {
         flex-direction: column !important;
         align-items: center !important;
         justify-content: center !important; /* Center elements vertically */
-        gap: 10px !important; /* Tight gaps to fit in one page */
+        gap: 12px !important; /* Tight gaps to fit in one page */
         height: 100% !important;
-        width: 100% !important;
-        max-width: 330px !important; /* Keep it narrow and perfectly centered */
-        margin: 0 auto !important;
+        width: 88% !important; /* 88% of viewport width, leaving 6% equal margin on left and right! */
+        max-width: 320px !important; /* Keep it narrow and perfectly centered */
+        margin: 0 auto !important; /* Dead-center horizontally */
         overflow: hidden !important; /* Prevent scrollbar */
         padding: 8px 0 !important;
         box-sizing: border-box !important;
@@ -6706,12 +6707,13 @@ canvas#hero-dash-canvas {
 
     /* 1. Top Greeting Pill */
     .dashboard-greeting-pill {
-        margin-top: 0 !important;
+        margin: 0 auto !important; /* Dead center */
         width: 100% !important;
-        max-width: 310px !important;
+        max-width: 300px !important;
         padding: 6px 18px !important;
         border-width: 2.5px !important;
         gap: 0px !important;
+        box-sizing: border-box !important;
     }
 
     .greeting-time-label {
@@ -6724,91 +6726,107 @@ canvas#hero-dash-canvas {
 
     /* 2. Mascot Stage */
     .dashboard-mascot-container {
-        margin: 0 !important;
-        flex: unset !important;
-        min-height: unset !important;
+        margin: 0 auto !important; /* Dead center */
+        width: 100% !important;
+        flex-shrink: 0 !important;
         height: 90px !important; /* Shorter mascot cloud */
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
     }
 
     .mascot-stage-cloud {
-        width: 150px !important;
-        height: 70px !important;
-        margin-bottom: 0 !important;
+        width: 145px !important;
+        height: 65px !important;
+        margin: 0 auto !important;
         border-radius: 80px / 50px !important;
     }
 
     .mascot-stage-cloud::before {
-        width: 78px !important;
-        height: 78px !important;
-        top: -28px !important;
+        width: 76px !important;
+        height: 76px !important;
+        top: -26px !important;
         left: 10px !important;
     }
 
     .mascot-stage-cloud::after {
-        width: 72px !important;
-        height: 72px !important;
-        top: -18px !important;
+        width: 70px !important;
+        height: 70px !important;
+        top: -16px !important;
         right: 8px !important;
     }
 
     .hv3-mascot-img {
-        width: 100px !important;
+        width: 95px !important;
         bottom: 12px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important; /* Center absolute mascot */
+        animation: floatGizmoPortrait 3.5s ease-in-out infinite !important;
+    }
+
+    @keyframes floatGizmoPortrait {
+        0%, 100% { transform: translateX(-50%) translateY(0) rotate(0deg); }
+        50% { transform: translateX(-50%) translateY(-6px) rotate(1deg); }
     }
 
     /* 3. Navigation Menu Pills */
     .dashboard-menu-pills {
         width: 100% !important;
-        max-width: 310px !important;
+        max-width: 300px !important;
         gap: 6px !important;
+        margin: 0 auto !important; /* Dead center */
     }
 
     .menu-pill-btn {
-        height: 40px !important; /* Compact button height */
+        height: 38px !important; /* Compact button height */
         border-width: 2.5px !important;
         border-radius: 20px !important;
+        margin: 0 auto !important;
+        width: 100% !important;
     }
 
     .menu-pill-icon-wrap {
-        width: 28px !important;
-        height: 28px !important;
+        width: 26px !important;
+        height: 26px !important;
     }
 
     .menu-pill-icon {
-        font-size: 0.9rem !important;
+        font-size: 0.85rem !important;
     }
 
     .menu-pill-text {
-        font-size: 0.82rem !important;
-        margin-right: 28px !important;
+        font-size: 0.8rem !important;
+        margin-right: 26px !important;
     }
 
     /* 4. Verse Cloud */
     .dashboard-verse-cloud {
         width: 100% !important;
-        max-width: 310px !important;
-        margin: 0 !important;
+        max-width: 300px !important;
+        margin: 0 auto !important; /* Dead center */
     }
 
     .verse-cloud-bubble {
-        padding: 8px 16px !important;
+        padding: 6px 14px !important;
         border-radius: 20px !important;
         border-width: 2.5px !important;
+        margin: 0 auto !important;
+        width: 100% !important;
     }
 
     .verse-cloud-text {
-        font-size: 0.82rem !important;
+        font-size: 0.8rem !important;
     }
 
     /* 5. Bottom Navigation / Stats Bar */
     .dashboard-bottom-bar {
         width: 100% !important;
-        max-width: 310px !important;
-        height: 52px !important; /* Sized to fit vertically */
+        max-width: 300px !important;
+        height: 50px !important; /* Sized to fit vertically */
         border-width: 2.5px !important;
         border-radius: 25px !important;
         padding: 0 10px !important;
-        margin-bottom: 0 !important;
+        margin: 0 auto !important; /* Dead center */
     }
 
     .bottom-bar-tab {
@@ -6816,19 +6834,19 @@ canvas#hero-dash-canvas {
     }
 
     .bottom-bar-tab .tab-icon {
-        font-size: 0.88rem !important;
+        font-size: 0.85rem !important;
     }
 
     .bottom-bar-tab .tab-value {
-        font-size: 0.78rem !important;
+        font-size: 0.75rem !important;
     }
 
     .bottom-bar-tab .tab-title {
-        font-size: 0.52rem !important;
+        font-size: 0.5rem !important;
     }
 
     .bottom-bar-divider {
-        height: 24px !important;
+        height: 22px !important;
     }
 }
 
