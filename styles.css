@@ -405,132 +405,14 @@ body, html {
 }
 
 /* ─── LIQUID GLASS WALLPAPER (Samsung One UI / Apple iOS style) ─── */
+/* ─── STUNNING NEUMORPHIC SKY-CLOUDS WALLPAPER (Samsung / iOS style) ─── */
 .cosmic-backdrop {
-    position: fixed;
-    inset: 0;
-    background: #06040f;
-    pointer-events: none;
-    z-index: 0;
-    overflow: hidden;
-}
-
-/* Fluid animated orbs — the "liquid" layer */
-.cosmic-backdrop::before,
-.cosmic-backdrop::after {
-    content: '';
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.75;
-}
-
-/* Orb 1 — deep violet */
-.cosmic-backdrop::before {
-    width: 70vmax;
-    height: 70vmax;
-    top: -20vmax;
-    left: -15vmax;
-    background: radial-gradient(circle at 40% 40%,
-        #7b2fff 0%,
-        #3d00b8 45%,
-        transparent 70%);
-    animation: orbDrift1 25s ease-in-out infinite alternate;
-}
-
-/* Orb 2 — electric cyan / magenta */
-.cosmic-backdrop::after {
-    width: 60vmax;
-    height: 60vmax;
-    bottom: -15vmax;
-    right: -10vmax;
-    background: radial-gradient(circle at 60% 60%,
-        #ff2d9b 0%,
-        #7000ff 40%,
-        transparent 70%);
-    animation: orbDrift2 30s ease-in-out infinite alternate;
-}
-
-@keyframes orbDrift1 {
-    0%   { transform: translate(0, 0)    scale(1);    }
-    33%  { transform: translate(8vw, 6vh) scale(1.12); }
-    66%  { transform: translate(-4vw, 10vh) scale(0.95); }
-    100% { transform: translate(5vw, -4vh) scale(1.08); }
-}
-@keyframes orbDrift2 {
-    0%   { transform: translate(0, 0)     scale(1);    }
-    33%  { transform: translate(-7vw, -5vh) scale(1.1); }
-    66%  { transform: translate(5vw, -8vh)  scale(0.9); }
-    100% { transform: translate(-4vw, 5vh)  scale(1.05); }
-}
-
-/* Extra orbs injected via JS spans for richer layering */
-.lg-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(70px);
-    opacity: 0.6;
-    pointer-events: none;
-}
-.lg-orb-1 {
-    width: 50vmax; height: 50vmax;
-    top: 20%; left: 30%;
-    background: radial-gradient(circle, #00d4ff 0%, #0047ff 50%, transparent 70%);
-    animation: orbDrift3 35s ease-in-out infinite alternate;
-}
-.lg-orb-2 {
-    width: 40vmax; height: 40vmax;
-    top: 50%; left: 10%;
-    background: radial-gradient(circle, #ff6b35 0%, #ff0099 55%, transparent 70%);
-    animation: orbDrift4 28s ease-in-out infinite alternate;
-}
-.lg-orb-3 {
-    width: 35vmax; height: 35vmax;
-    top: 5%; left: 55%;
-    background: radial-gradient(circle, #a8ff78 0%, #00b4d8 55%, transparent 70%);
-    animation: orbDrift5 40s ease-in-out infinite alternate;
-    opacity: 0.35;
-}
-
-@keyframes orbDrift3 {
-    0%   { transform: translate(0,0)       scale(1);    }
-    50%  { transform: translate(-6vw, 8vh) scale(1.15); }
-    100% { transform: translate(4vw, -5vh) scale(0.9);  }
-}
-@keyframes orbDrift4 {
-    0%   { transform: translate(0,0)        scale(1);    }
-    50%  { transform: translate(9vw, -6vh)  scale(1.2);  }
-    100% { transform: translate(-3vw, 7vh)  scale(0.85); }
-}
-@keyframes orbDrift5 {
-    0%   { transform: translate(0,0)        scale(1);   }
-    50%  { transform: translate(5vw, 10vh)  scale(1.1); }
-    100% { transform: translate(-8vw, -3vh) scale(0.9); }
-}
-
-/* Frosted glass noise overlay — the "glass" layer */
-.cosmic-backdrop .lg-frost {
-    position: absolute;
-    inset: 0;
-    backdrop-filter: blur(0px);
-    background: rgba(8, 4, 20, 0.18);
-    /* Fine noise texture for glass grain */
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-    background-size: 200px 200px;
-}
-
-/* Y2K Cosmic Overlay - Slow Breathing Glow */
-.cosmic-backdrop .lg-glow {
-    position: absolute;
-    inset: 0;
-    background-image:
-        radial-gradient(circle at 15% 25%, rgba(0, 240, 255, 0.08) 0%, transparent 50%),
-        radial-gradient(circle at 85% 75%, rgba(255, 0, 157, 0.07) 0%, transparent 50%);
-    animation: pulseGlow 12s ease-in-out infinite alternate;
-}
-
-@keyframes pulseGlow {
-    0%   { opacity: 0.6; }
-    100% { opacity: 1;   }
+    position: fixed !important;
+    inset: 0 !important;
+    background: transparent !important; /* Make it transparent so the global cosmic-backdrop wallpaper shows through! */
+    pointer-events: none !important;
+    z-index: 0 !important;
+    overflow: hidden !important;
 }
 
 
@@ -6794,16 +6676,55 @@ canvas#hero-dash-canvas {
    RESPONSIVE DUAL-ORIENTATION ADAPTERS (PORTRAIT vs LANDSCAPE)
    ===================================================================== */
 
-/* 1. PORTRAIT VIEW (Default stacked layout) */
+/* 1. PORTRAIT VIEW (Default stacked layout centered perfectly on phones) */
 @media (orientation: portrait), (max-width: 799px) {
     .dashboard-layout-container {
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
-        justify-content: space-between !important;
-        gap: 12px !important;
+        justify-content: center !important; /* Center elements vertically */
+        gap: 18px !important; /* Balanced gap between components */
         height: 100% !important;
         width: 100% !important;
+        overflow-y: auto !important;
+        padding: 24px 12px !important; /* Comfortable phone padding */
+        box-sizing: border-box !important;
+    }
+
+    .dashboard-greeting-pill {
+        margin-top: 0 !important;
+        width: 95% !important;
+        max-width: 380px !important;
+    }
+
+    .dashboard-mascot-container {
+        margin: 0 !important;
+        flex: unset !important;
+        min-height: unset !important;
+    }
+
+    .mascot-stage-cloud {
+        width: 220px !important;
+        height: 110px !important;
+        margin-bottom: 5px !important;
+    }
+
+    .dashboard-menu-pills {
+        width: 95% !important;
+        max-width: 380px !important;
+        gap: 8px !important;
+    }
+
+    .dashboard-verse-cloud {
+        width: 95% !important;
+        max-width: 380px !important;
+        margin: 0 !important;
+    }
+
+    .dashboard-bottom-bar {
+        width: 95% !important;
+        max-width: 380px !important;
+        margin-bottom: 0 !important;
     }
 }
 
