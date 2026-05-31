@@ -107,13 +107,13 @@ body, html {
 .orientation-warning { display: none !important; }
 
 /* =====================================================================
-   APP SHELL — GRID LAYOUT
+   APP SHELL — FLEXBOX COLUMN LAYOUT
    ===================================================================== */
 .app-shell {
     width: 100%;
     height: 100%;
-    display: grid;
-    grid-template-rows: 70px 1fr;
+    display: flex !important;
+    flex-direction: column !important;
     background: transparent; /* let .cosmic-backdrop wallpaper show through */
     position: relative;
     z-index: 1;
@@ -124,6 +124,8 @@ body, html {
    TOP HEADER
    ===================================================================== */
 .top-header {
+    height: 70px !important;
+    flex-shrink: 0 !important;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -361,7 +363,7 @@ body, html {
     position: relative;
     overflow: hidden;
     width: 100%;
-    height: 100%;
+    flex: 1 !important;
 }
 
 .app-screen {
@@ -6678,8 +6680,16 @@ canvas#hero-dash-canvas {
 
 /* 1. PORTRAIT VIEW (Optimized to center perfectly and fit in one page without scrolling) */
 @media (orientation: portrait), (max-width: 799px) {
+    /* Clear .app-screen padding to avoid unequal centering shifts */
+    .app-screen {
+        padding: 0px !important;
+        height: 100% !important;
+        width: 100% !important;
+        overflow: hidden !important;
+    }
+
     .home-v3.cockpit-dashboard {
-        padding: 10px 0 !important;
+        padding: 0 !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -6697,11 +6707,11 @@ canvas#hero-dash-canvas {
         justify-content: center !important; /* Center elements vertically */
         gap: 12px !important; /* Tight gaps to fit in one page */
         height: 100% !important;
-        width: 88% !important; /* 88% of viewport width, leaving 6% equal margin on left and right! */
-        max-width: 320px !important; /* Keep it narrow and perfectly centered */
+        width: 100% !important;
+        max-width: 330px !important; /* Keep it narrow, centered, and mathematically balanced */
         margin: 0 auto !important; /* Dead-center horizontally */
         overflow: hidden !important; /* Prevent scrollbar */
-        padding: 8px 0 !important;
+        padding: 8px 12px !important; /* Symmetrical padding to protect small screen edges */
         box-sizing: border-box !important;
     }
 
@@ -6710,55 +6720,55 @@ canvas#hero-dash-canvas {
         margin: 0 auto !important; /* Dead center */
         width: 100% !important;
         max-width: 300px !important;
-        padding: 6px 18px !important;
+        padding: 8px 18px !important;
         border-width: 2.5px !important;
         gap: 0px !important;
         box-sizing: border-box !important;
     }
 
     .greeting-time-label {
-        font-size: 0.76rem !important;
+        font-size: 0.78rem !important;
     }
 
     .greeting-user-name {
-        font-size: 1.45rem !important;
+        font-size: 1.55rem !important;
     }
 
-    /* 2. Mascot Stage */
+    /* 2. Mascot Stage - Scaled Up by ~50% and perfectly centered */
     .dashboard-mascot-container {
         margin: 0 auto !important; /* Dead center */
         width: 100% !important;
         flex-shrink: 0 !important;
-        height: 90px !important; /* Shorter mascot cloud */
+        height: 120px !important; /* Shorter mascot cloud */
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
     }
 
     .mascot-stage-cloud {
-        width: 145px !important;
-        height: 65px !important;
+        width: 185px !important; /* Increased from 145px */
+        height: 80px !important;  /* Increased from 65px */
         margin: 0 auto !important;
-        border-radius: 80px / 50px !important;
+        border-radius: 90px / 55px !important;
     }
 
     .mascot-stage-cloud::before {
-        width: 76px !important;
-        height: 76px !important;
-        top: -26px !important;
-        left: 10px !important;
+        width: 90px !important;
+        height: 90px !important;
+        top: -36px !important;
+        left: 15px !important;
     }
 
     .mascot-stage-cloud::after {
-        width: 70px !important;
-        height: 70px !important;
-        top: -16px !important;
-        right: 8px !important;
+        width: 85px !important;
+        height: 85px !important;
+        top: -24px !important;
+        right: 12px !important;
     }
 
     .hv3-mascot-img {
-        width: 95px !important;
-        bottom: 12px !important;
+        width: 145px !important; /* Increased from 95px */
+        bottom: 18px !important;
         left: 50% !important;
         transform: translateX(-50%) !important; /* Center absolute mascot */
         animation: floatGizmoPortrait 3.5s ease-in-out infinite !important;
@@ -6766,7 +6776,7 @@ canvas#hero-dash-canvas {
 
     @keyframes floatGizmoPortrait {
         0%, 100% { transform: translateX(-50%) translateY(0) rotate(0deg); }
-        50% { transform: translateX(-50%) translateY(-6px) rotate(1deg); }
+        50% { transform: translateX(-50%) translateY(-6px) rotate(1.5deg); }
     }
 
     /* 3. Navigation Menu Pills */
@@ -6795,7 +6805,7 @@ canvas#hero-dash-canvas {
     }
 
     .menu-pill-text {
-        font-size: 0.8rem !important;
+        font-size: 0.82rem !important;
         margin-right: 26px !important;
     }
 
@@ -6807,7 +6817,7 @@ canvas#hero-dash-canvas {
     }
 
     .verse-cloud-bubble {
-        padding: 6px 14px !important;
+        padding: 8px 16px !important;
         border-radius: 20px !important;
         border-width: 2.5px !important;
         margin: 0 auto !important;
@@ -6815,14 +6825,14 @@ canvas#hero-dash-canvas {
     }
 
     .verse-cloud-text {
-        font-size: 0.8rem !important;
+        font-size: 0.85rem !important;
     }
 
     /* 5. Bottom Navigation / Stats Bar */
     .dashboard-bottom-bar {
         width: 100% !important;
         max-width: 300px !important;
-        height: 50px !important; /* Sized to fit vertically */
+        height: 52px !important; /* Sized to fit vertically */
         border-width: 2.5px !important;
         border-radius: 25px !important;
         padding: 0 10px !important;
@@ -6847,6 +6857,32 @@ canvas#hero-dash-canvas {
 
     .bottom-bar-divider {
         height: 22px !important;
+    }
+}
+
+/* 1b. DESKTOP-PORTRAIT RESIZE HANDLER (Physical Phone Sandbox Device Frame) */
+@media (min-width: 800px) and (orientation: portrait) {
+    body {
+        background: #111827 !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+
+    .app-shell {
+        max-width: 420px !important;
+        max-height: 880px !important;
+        width: 92% !important;
+        height: 92% !important;
+        margin: auto !important;
+        border-radius: 42px !important;
+        border: 12px solid #27272a !important; /* Premium physical dark graphite outer ring */
+        box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.85),
+                    0 0 50px rgba(0, 240, 255, 0.12),
+                    inset 0 1px 3px rgba(255,255,255,0.15) !important;
+        overflow: hidden !important;
+        position: relative !important;
+        transform: none !important;
     }
 }
 
