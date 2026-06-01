@@ -243,7 +243,28 @@ public class MainActivity extends AppCompatActivity {
         cookieManager.setCookie(mainURL, cookies);
         cookieManager.flush();
 
-        // Image upload support
+        // Disable Service Workers to avoid stale cached content
+        // Starting from Android 24, ServiceWorkerController can be used to intercept
+        // requests. By providing a client that returns null for all requests we effectively
+        // disable Service Workers for this WebView instance.
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            android.webkit.ServiceWorkerController swController = android.webkit.ServiceWorkerController.getInstance();
+            swController.setServiceWorkerClient(new android.webkit.ServiceWorkerClient() {
+                @Override
+                public android.webkit.WebResourceResponse shouldInterceptRequest(android.webkit.WebResourceRequest request) {
+                    // Returning null lets the request proceed normally without a Service Worker.
+                    return null;
+                }
+            });
+        }
+        // Additionally clear any existing Service Worker data to force a fresh start.
+        android.webkit.WebStorage.getInstance().deleteAllData();
+        // Clear cache and storage to ensure no stale assets remain.
+        webview.clearCache(true);
+        webview.clearHistory();
+        android.webkit.CookieManager.getInstance().removeAllCookies(null);
+        android.webkit.CookieManager.getInstance().flush();
+
         fileChooserLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {

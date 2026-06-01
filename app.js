@@ -2240,15 +2240,18 @@ function createYoutubePlayer(episode) {
         }
     }
     
+    // Detect mobile to enable native YouTube controls (required for iOS touch)
+    const isMobile = window.innerWidth <= 768 || window.matchMedia('(orientation: portrait)').matches;
+    
     // Instantiate YouTube player inside the recreated div
     ytPlayer = new YT.Player('youtube-player', {
         height: '100%',
         width: '100%',
         videoId: episode.youtube_video_id,
         playerVars: {
-            controls: 0,        // Hides YouTube progress bar and controls
+            controls: isMobile ? 1 : 0,  // Show native controls on mobile for touch support
             disablekb: 1,       // Disables scrubbing hotkeys
-            fs: 0,              // Prevents fullscreen button scrubbing
+            fs: isMobile ? 1 : 0,         // Allow fullscreen on mobile
             modestbranding: 1,  // Minimizes YouTube logos
             rel: 0,             // Hides recommendations at end of video
             showinfo: 0,        // Hides video info
