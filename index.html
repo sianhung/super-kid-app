@@ -89,113 +89,221 @@
         <!-- Screen Content Area -->
         <main class="screen-area">
 
-            <!-- SCREEN: Home Screen Dashboard — Gizmo Mission Control -->
+            <!-- SCREEN: Home Screen Dashboard — Redesigned to Match Reference -->
             <section id="screen-home" class="app-screen active">
-                <div class="home-v3 cockpit-dashboard">
+                <div class="home-v3">
                     
-                    <!-- Main Dashboard Layout Container -->
-                    <div class="dashboard-layout-container">
-                        
-                        <!-- 1. Top Greeting Pill (Glassmorphic Capsule) -->
-                        <div class="dashboard-greeting-pill">
-                            <span class="greeting-time-label" id="home-greeting-label">Good Evening! 🌙</span>
-                            <h2 class="greeting-user-name" id="home-greeting-name">Leo Starry</h2>
-                        </div>
+                    <!-- Soft ambient background blobs -->
+                    <div class="home-blob home-blob-1"></div>
+                    <div class="home-blob home-blob-2"></div>
+                    <div class="home-blob home-blob-3"></div>
 
-                        <!-- 2. Mascot Stage (Sitting on Cloud) -->
-                        <div class="dashboard-mascot-container">
-                            <div class="mascot-stage-cloud">
-                                <div class="mascot-stage-ambient-glow"></div>
-                                <img src="assets/mascot.png" alt="Gizmo" class="hv3-mascot-img" id="hv3-gizmo-img">
+                    <!-- 1. Top Row: Greeting & Badges -->
+                    <div class="home-top-row">
+                        <div class="home-greeting-block">
+                            <p class="hv3-greeting-label" id="home-greeting-label">Good Afternoon, 🧑‍💻</p>
+                            <h2 class="hv3-greeting-name" id="home-greeting-name">Jsianhung!</h2>
+                        </div>
+                        <div class="home-badges-block">
+                            <div class="hv3-badge hv3-badge-fire" id="home-streak-badge">
+                                🔥 <span id="hv3-streak-count">1 Day Streak</span>
+                            </div>
+                            <div class="hv3-badge hv3-badge-level" id="home-level-badge">
+                                <span id="hv3-xp-count">Level 5</span>
                             </div>
                         </div>
-
-                        <!-- 3. Navigation Menu Pill Stack -->
-                        <div class="dashboard-menu-pills">
-                            
-                            <!-- MISSION HUB -->
-                            <button type="button" class="menu-pill-btn" id="home-hud-goto-home">
-                                <div class="menu-pill-icon-wrap theme-blue">
-                                    <span class="menu-pill-icon">🏠</span>
-                                </div>
-                                <span class="menu-pill-text">MISSION HUB</span>
-                            </button>
-                            
-                            <!-- ARCADE -->
-                            <button type="button" class="menu-pill-btn" id="home-hud-goto-games">
-                                <div class="menu-pill-icon-wrap theme-blue">
-                                    <span class="menu-pill-icon">🎮</span>
-                                </div>
-                                <span class="menu-pill-text">ARCADE</span>
-                            </button>
-                            
-                            <!-- SCRIPTURE QUEST -->
-                            <button type="button" class="menu-pill-btn" id="home-hud-goto-bible">
-                                <div class="menu-pill-icon-wrap theme-blue">
-                                    <span class="menu-pill-icon">📖</span>
-                                </div>
-                                <span class="menu-pill-text">SCRIPTURE QUEST</span>
-                            </button>
-                            
-                            <!-- CHALLENGES -->
-                            <button type="button" class="menu-pill-btn" id="home-hud-goto-quests">
-                                <div class="menu-pill-icon-wrap theme-yellow">
-                                    <span class="menu-pill-icon">⭐</span>
-                                </div>
-                                <span class="menu-pill-text">CHALLENGES</span>
-                            </button>
-                            
-                            <!-- ADVENTURES -->
-                            <button type="button" class="menu-pill-btn" id="home-hud-goto-watch">
-                                <div class="menu-pill-icon-wrap theme-blue">
-                                    <span class="menu-pill-icon">🗺️</span>
-                                </div>
-                                <span class="menu-pill-text">ADVENTURES</span>
-                            </button>
-                            
-                        </div>
-
-                        <!-- 4. Verse Cloud (Puffy cloud verse bubble) -->
-                        <div class="dashboard-verse-cloud">
-                            <div class="verse-cloud-bubble">
-                                <p class="verse-cloud-text" id="hv3-verse-pill-text">"For God so loved the world…" — John 3:16</p>
-                            </div>
-                        </div>
-
-                        <!-- 5. Bottom Navigation / Stats Bar -->
-                        <div class="dashboard-bottom-bar">
-                            <div class="bottom-bar-tab" id="btn-goto-watch-direct">
-                                <span class="tab-icon">▶️</span>
-                                <div class="tab-label-wrap">
-                                    <span class="tab-value" id="hv3-episodes-val">0</span>
-                                    <span class="tab-title">Episodes</span>
-                                </div>
-                            </div>
-                            <div class="bottom-bar-divider"></div>
-                            <div class="bottom-bar-tab" id="btn-goto-games-direct">
-                                <span class="tab-icon">⭐</span>
-                                <div class="tab-label-wrap">
-                                    <span class="tab-value" id="hv3-level-val">1</span>
-                                    <span class="tab-title">Level</span>
-                                </div>
-                            </div>
-                            <div class="bottom-bar-divider"></div>
-                            <div class="bottom-bar-tab" id="btn-goto-bible-direct">
-                                <span class="tab-icon">📅</span>
-                                <div class="tab-label-wrap">
-                                    <span class="tab-value" id="hv3-streak-val">1</span>
-                                    <span class="tab-title">Day Streak</span>
-                                </div>
-                            </div>
-                        </div>
-                        
                     </div>
 
-                    <!-- Hidden/Graceful backup nodes for non-breaking JS data binding -->
-                    <div style="display: none;">
-                        <span id="hv3-coin-amount">0</span>
-                        <div id="hv3-xp-bar" style="width: 0%;"></div>
-                        <span id="hv3-xp-goal-text">LV.1 · 0/100 XP</span>
+                    <!-- 2. Frosted Glass progress Card -->
+                    <div class="hv3-coin-card">
+                        <div class="coin-card-left">
+                            <div class="mascot-avatar" id="home-mascot-avatar-container">
+                                <img src="assets/avatar_boy.svg" alt="Profile" class="mascot-img" id="home-avatar-img">
+                                <div id="home-equipped-accessory" class="equipped-overlay"></div>
+                            </div>
+                        </div>
+                        <div class="coin-card-right">
+                            <p class="hv3-coin-label">COINS:</p>
+                            <div class="hv3-coin-value-row">
+                                <span class="hv3-coin-amount-wrap">
+                                    <span class="hv3-coin-icon">⚡</span>
+                                    <span class="hv3-coin-amount" id="hv3-coin-amount">1000</span>
+                                </span>
+                                <!-- Glowing/spinning coin element -->
+                                <div class="hv3-coin-spinner-wrap">
+                                    <svg class="hv3-3d-coin-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                                        <defs>
+                                            <radialGradient id="coinGrad" cx="50%" cy="50%" r="50%">
+                                                <stop offset="0%" stop-color="#ffe97f" />
+                                                <stop offset="60%" stop-color="#f5b041" />
+                                                <stop offset="100%" stop-color="#b78103" />
+                                            </radialGradient>
+                                            <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" stop-color="#00f0ff" />
+                                                <stop offset="50%" stop-color="#8b5cf6" />
+                                                <stop offset="100%" stop-color="#ec4899" />
+                                            </linearGradient>
+                                            <filter id="neonGlow" x="-25%" y="-25%" width="150%" height="150%">
+                                                <feGaussianBlur stdDeviation="3" result="blur" />
+                                                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                            </filter>
+                                        </defs>
+                                        <!-- Outer neon glow ring -->
+                                        <circle cx="50%" cy="50%" r="44" fill="none" stroke="url(#glowGrad)" stroke-width="2.5" filter="url(#neonGlow)" />
+                                        <!-- Outer gold coin border -->
+                                        <circle cx="50%" cy="50%" r="35" fill="url(#coinGrad)" stroke="#fff3cd" stroke-width="2" />
+                                        <circle cx="50%" cy="50%" r="30" fill="none" stroke="#d4af37" stroke-width="1.5" />
+                                        <!-- Lightning icon inside -->
+                                        <polygon points="53,20 40,46 49,46 45,74 61,42 51,42" fill="#ffffff" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.35))" />
+                                        <!-- Sparkle points -->
+                                        <path d="M 16,50 H 20 M 18,48 V 52" stroke="#00f0ff" stroke-width="1.2" stroke-linecap="round" />
+                                        <path d="M 80,50 H 84 M 82,48 V 52" stroke="#ec4899" stroke-width="1.2" stroke-linecap="round" />
+                                    </svg>
+                                    <div class="coin-spinner-glow"></div>
+                                </div>
+                            </div>
+                            <div class="hv3-coin-goal-row">
+                                <div class="hv3-coin-progress-wrap">
+                                    <div class="hv3-coin-progress-bar" id="hv3-xp-bar" style="width: 50%;"></div>
+                                    <span class="hv3-coin-goal-text" id="hv3-xp-goal-text">50/100 XP</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Row of 3 Capsule Stats -->
+                    <div class="hv3-bubble-stats">
+                        <button type="button" class="hv3-bubble" data-nav="dashboard">
+                            <div class="bubble-icon-circle icon-episodes">
+                                <span class="hv3-bubble-icon">🎬</span>
+                            </div>
+                            <div class="bubble-text-wrap">
+                                <span class="hv3-bubble-val" id="hv3-episodes-val">0</span>
+                                <span class="hv3-bubble-label">Episodes</span>
+                            </div>
+                        </button>
+                        <button type="button" class="hv3-bubble" data-nav="games">
+                            <div class="bubble-icon-circle icon-level">
+                                <span class="hv3-bubble-icon">⭐</span>
+                            </div>
+                            <div class="bubble-text-wrap">
+                                <span class="hv3-bubble-val" id="hv3-level-val">5</span>
+                                <span class="hv3-bubble-label">Level</span>
+                            </div>
+                        </button>
+                        <button type="button" class="hv3-bubble" data-nav="bible">
+                            <div class="bubble-icon-circle icon-streak">
+                                <span class="hv3-bubble-icon">🔥</span>
+                            </div>
+                            <div class="bubble-text-wrap">
+                                <span class="hv3-bubble-val" id="hv3-streak-val">1000</span>
+                                <span class="hv3-bubble-label">Streak</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- 4. Row of 3 Circular Medals -->
+                    <div class="hv3-medals-row">
+                        <div class="hv3-medal hv3-medal-gold" title="Gold Filmstrip Medal">
+                            <svg class="medal-svg" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#ffe066" />
+                                        <stop offset="50%" stop-color="#f39c12" />
+                                        <stop offset="100%" stop-color="#d35400" />
+                                    </linearGradient>
+                                    <linearGradient id="goldReflect" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.5" />
+                                        <stop offset="30%" stop-color="#ffffff" stop-opacity="0" />
+                                        <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+                                    </linearGradient>
+                                </defs>
+                                <circle cx="30" cy="30" r="26" fill="url(#goldGrad)" stroke="#ffe57f" stroke-width="2.5" />
+                                <circle cx="30" cy="30" r="22" fill="none" stroke="#d4af37" stroke-width="1.5" stroke-dasharray="3 2" />
+                                <g fill="#ffffff" transform="translate(18,18) scale(0.8)">
+                                    <rect x="2" y="2" width="26" height="26" rx="3" fill="#1b2631" stroke="#ffffff" stroke-width="2" />
+                                    <rect x="5" y="5" width="4" height="4" fill="#ffffff" />
+                                    <rect x="5" y="13" width="4" height="4" fill="#ffffff" />
+                                    <rect x="5" y="21" width="4" height="4" fill="#ffffff" />
+                                    <rect x="21" y="5" width="4" height="4" fill="#ffffff" />
+                                    <rect x="21" y="13" width="4" height="4" fill="#ffffff" />
+                                    <rect x="21" y="21" width="4" height="4" fill="#ffffff" />
+                                    <rect x="11" y="7" width="8" height="16" fill="#f2f4f4" rx="1" />
+                                </g>
+                                <path d="M 7,18 A 26 26 0 0 1 45,7 L 7,45 A 26 26 0 0 1 7,18 Z" fill="url(#goldReflect)" pointer-events="none" />
+                            </svg>
+                        </div>
+                        <div class="hv3-medal hv3-medal-silver" title="Silver Torch Medal">
+                            <svg class="medal-svg" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#ffffff" />
+                                        <stop offset="50%" stop-color="#b4c6d0" />
+                                        <stop offset="100%" stop-color="#64748b" />
+                                    </linearGradient>
+                                </defs>
+                                <circle cx="30" cy="30" r="26" fill="url(#silverGrad)" stroke="#e2e8f0" stroke-width="2.5" />
+                                <circle cx="30" cy="30" r="22" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 2" />
+                                <g transform="translate(19,13) scale(0.72)">
+                                    <path d="M12,24 L18,24 L15,38 Z" fill="#78909c" stroke="#ffffff" stroke-width="2" />
+                                    <rect x="10" y="21" width="10" height="3" rx="1" fill="#cfd8dc" stroke="#ffffff" stroke-width="1.5" />
+                                    <path d="M15,2 Q10,12 15,21 Q20,12 15,2" fill="#ff7043" stroke="#ffffff" stroke-width="2" />
+                                    <path d="M15,7 Q12,14 15,21 Q18,14 15,7" fill="#ffca28" />
+                                </g>
+                                <path d="M 7,18 A 26 26 0 0 1 45,7 L 7,45 A 26 26 0 0 1 7,18 Z" fill="url(#goldReflect)" pointer-events="none" />
+                            </svg>
+                        </div>
+                        <div class="hv3-medal hv3-medal-bronze" title="Bronze Trophy Medal">
+                            <svg class="medal-svg" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <linearGradient id="bronzeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#edbb99" />
+                                        <stop offset="60%" stop-color="#a0522d" />
+                                        <stop offset="100%" stop-color="#5c2e16" />
+                                    </linearGradient>
+                                </defs>
+                                <circle cx="30" cy="30" r="26" fill="url(#bronzeGrad)" stroke="#f5cba7" stroke-width="2.5" />
+                                <circle cx="30" cy="30" r="22" fill="none" stroke="#873600" stroke-width="1.5" stroke-dasharray="3 2" />
+                                <g transform="translate(18,15) scale(0.8)">
+                                    <path d="M5,5 L25,5 L23,17 C21,21 9,21 7,17 Z" fill="#f5b041" stroke="#ffffff" stroke-width="2" />
+                                    <rect x="13" y="19" width="4" height="6" fill="#d35400" stroke="#ffffff" stroke-width="2" />
+                                    <rect x="9" y="25" width="12" height="3" rx="1.5" fill="#f5b041" stroke="#ffffff" stroke-width="1.5" />
+                                    <path d="M5,7 H1 C0,7 0,12 3,12 H5" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" />
+                                    <path d="M25,7 H29 C30,7 30,12 27,12 H25" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" />
+                                </g>
+                                <path d="M 7,18 A 26 26 0 0 1 45,7 L 7,45 A 26 26 0 0 1 7,18 Z" fill="url(#goldReflect)" pointer-events="none" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- 5. Mascot & Scripture hologram Section -->
+                    <div class="hv3-mascot-hologram-stage">
+                        <!-- Custom hologram projection beam overlay -->
+                        <div class="hologram-projector-beam"></div>
+
+                        <!-- Hologram verse cloud on the left -->
+                        <div class="hologram-verse-container">
+                            <div class="hologram-projector-glow"></div>
+                            <div class="hologram-bubble">
+                                <!-- HUD tech corners -->
+                                <div class="hud-corner hud-tl"></div>
+                                <div class="hud-corner hud-tr"></div>
+                                <div class="hud-corner hud-bl"></div>
+                                <div class="hud-corner hud-br"></div>
+                                
+                                <p class="hologram-text" id="hv3-verse-pill-text">
+                                    "Trust in the Lord with all your heart and lean not on your own understanding..."<br>
+                                    <span class="hologram-ref">— Proverbs 3:5</span>
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- Standing mascot on the right -->
+                        <div class="standing-mascot-container">
+                            <div class="mascot-projector-glow"></div>
+                            <img src="assets/mascot.png" alt="Gizmo" class="standing-mascot-img" id="hv3-gizmo-img">
+                            <div class="standing-mascot-shadow"></div>
+                        </div>
                     </div>
 
                 </div>
@@ -297,6 +405,19 @@
                         <p class="admin-goal-status" id="admin-goal-status"></p>
                     </div>
 
+                    <!-- YouTube Channel Integration Settings -->
+                    <div class="admin-section">
+                        <h3 class="admin-section-title">📺 YouTube Channel Integration</h3>
+                        <p class="admin-section-desc" style="color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 12px; line-height: 1.4;">
+                            Configure a YouTube channel link or handle below to dynamically sync and display its videos in the Watch section!
+                        </p>
+                        <div class="admin-change-pin-row" style="display: flex; flex-direction: column; gap: 8px;">
+                            <input type="text" placeholder="YouTube Channel Link or Handle (e.g. https://www.youtube.com/@superbookmyanmar4188)" class="admin-pin-input" id="admin-yt-channel-input" style="width: 100%; box-sizing: border-box; text-align: left; padding: 12px; font-size: 0.9rem;">
+                            <button type="button" class="admin-save-goal-btn" id="admin-save-yt-btn" style="width: 100%;">Save & Sync Channel ⚡</button>
+                        </div>
+                        <p class="admin-goal-status" id="admin-yt-status" style="margin-top: 8px; font-weight: bold;"></p>
+                    </div>
+
                     <!-- Quick Links for Parents -->
                     <div class="admin-section">
                         <h3 class="admin-section-title">🔗 Quick Links</h3>
@@ -394,8 +515,23 @@
 
             <!-- SCREEN: Episode Guide Dashboard -->
             <section id="screen-dashboard" class="app-screen">
-                <div class="page-header-band">
-                    <h1 class="page-title">EPISODE GUIDE</h1>
+                <div class="page-header-band youtube-channel-header-band">
+                    <div class="yt-header-left">
+                        <h1 class="page-title" id="yt-channel-name-title">EPISODE GUIDE</h1>
+                        <p class="yt-channel-subtitle" id="yt-channel-subtitle">Official YouTube Broadcast</p>
+                    </div>
+                    <div class="yt-header-center">
+                        <div class="yt-search-input-wrap">
+                            <span class="yt-search-icon">🔍</span>
+                            <input type="text" id="yt-search-input" placeholder="Search episodes..." class="yt-search-field">
+                            <button type="button" id="yt-clear-search" class="yt-search-clear hidden">×</button>
+                        </div>
+                    </div>
+                    <div class="yt-header-right">
+                        <button type="button" class="yt-refresh-btn" id="yt-refresh-btn">
+                            <span class="yt-refresh-icon">🔄</span> Refresh Feed
+                        </button>
+                    </div>
                 </div>
                 <div class="carousel-outer-wrapper" style="position: relative; width: 100%; display: flex; align-items: center; justify-content: center; flex-grow: 1; overflow: hidden;">
                     <button id="carousel-prev-btn" class="carousel-nav-btn prev" aria-label="Previous page">◀</button>
@@ -1240,6 +1376,28 @@
             <button id="tab-watch-btn" class="nav-tab" data-screen="screen-dashboard">
                 <span class="tab-icon">📺</span>
                 <span class="tab-label">Watch</span>
+            </button>
+            <button id="tab-parent-btn" class="nav-tab" data-screen="screen-parent">
+                <span class="tab-icon">
+                    <svg class="parent-tab-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+                        <defs>
+                            <linearGradient id="bookCoverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#3b82f6" />
+                                <stop offset="100%" stop-color="#1d4ed8" />
+                            </linearGradient>
+                        </defs>
+                        <!-- Book Cover base -->
+                        <rect x="4" y="3" width="12" height="18" rx="1.5" fill="url(#bookCoverGrad)" stroke="#ffffff" stroke-width="1.5" />
+                        <!-- Book Pages / Spine -->
+                        <path d="M16,4 H17.5 A1,1 0 0 1 18.5,5 V19 A1,1 0 0 1 17.5,20 H16" fill="none" stroke="#ffffff" stroke-width="1.5" />
+                        <!-- Lock Overlay on the book -->
+                        <rect x="8" y="11" width="8" height="6" rx="1" fill="#facc15" stroke="#1e293b" stroke-width="1.2" />
+                        <path d="M10,11 V9 A2,2 0 0 1 14,9 V11" fill="none" stroke="#facc15" stroke-width="1.2" />
+                        <!-- Tiny sparkle in corner -->
+                        <path d="M 18,3 L 19,4 L 18,5 L 17,4 Z" fill="#00f0ff" />
+                    </svg>
+                </span>
+                <span class="tab-label">Parent Portal</span>
             </button>
         </nav>
     </div>

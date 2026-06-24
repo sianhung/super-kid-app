@@ -130,6 +130,39 @@ const MOCK_CONTESTS = [
     }
 ];
 
+const GENERAL_QUIZ_QUESTIONS = [
+    {
+        question_text: "ဘုရားသခင်က ကောင်းကင်နှင့်မြေကြီးကို ဘယ်နှစ်ရက်အတွင်း ဖန်ဆင်းခဲ့သလဲ။ (In how many days did God create heaven and earth?)",
+        options: ["၅ ရက် (5 days)", "၆ ရက် (6 days)", "၇ ရက် (7 days)", "၈ ရက် (8 days)"],
+        correct_option_index: 1,
+        coin_reward: 50
+    },
+    {
+        question_text: "ရေလွှမ်းမိုးဘေးမှ လွတ်မြောက်ရန် သဘောင်္ကြီးကို တည်ဆောက်ခဲ့သူမှာ မည်သူနည်း။ (Who built the large ark to survive the flood?)",
+        options: ["နောဧ (Noah)", "မောရှေ (Moses)", "အာဗြဟံ (Abraham)", "ဒါဝိဒ် (David)"],
+        correct_option_index: 0,
+        coin_reward: 50
+    },
+    {
+        question_text: "ဂေါလျတ်အမည်ရှိသော လူ့ဘီလူးကြီးကို အောင်နိုင်ခဲ့သည့် သိုးထိန်းလေးမှာ မည်သူနည်း။ (Who was the shepherd boy who defeated Goliath?)",
+        options: ["ရှောလု (Saul)", "ရှာမွေလ (Samuel)", "ဒါဝိဒ် (David)", "ရှောလမုန် (Solomon)"],
+        correct_option_index: 2,
+        coin_reward: 50
+    },
+    {
+        question_text: "ဓမ္မဟောင်းကျမ်း၏ ပထမဆုံးကျမ်းမှာ မည်သည့်ကျမ်းနည်း။ (What is the first book of the Old Testament?)",
+        options: ["ထွက်မြောက်ရာကျမ်း (Exodus)", "ဝတ်ပြုရာကျမ်း (Leviticus)", "ကမ္ဘာဦးကျမ်း (Genesis)", "တရားဟောရာကျမ်း (Deuteronomy)"],
+        correct_option_index: 2,
+        coin_reward: 50
+    },
+    {
+        question_text: "ယေရှုခရစ်တော် မွေးဖွားရာမြို့မှာ မည်သည့်မြို့ဖြစ်သနည်း။ (Where was Jesus Christ born?)",
+        options: ["နာဇရက်မြို့ (Nazareth)", "ဂျေရုဆလင်မြို့ (Jerusalem)", "ဗက်လင်ဟင်မြို့ (Bethlehem)", "ယေရိခေါမြို့ (Jericho)"],
+        correct_option_index: 2,
+        coin_reward: 50
+    }
+];
+
 const MOCK_QUIZZES = [
     {
         episode_id: 'e1c12e87-0b1a-48d6-848e-653ea956bc01',
@@ -343,7 +376,9 @@ class AppState {
                 is_admin: loggedInEmail.toLowerCase() === 'jsianhung@gmail.com',
                 is_banned: false,
                 ownedItems: [],
-                purchased_episodes: []
+                purchased_episodes: [],
+                youtube_channel_url: 'https://www.youtube.com/@superbookmyanmar4188',
+                youtube_channel_name: 'Superbook Myanmar'
             };
             this.usersDb.push(userRecord);
             localStorage.setItem('superkid_users_db', JSON.stringify(this.usersDb));
@@ -362,7 +397,9 @@ class AppState {
             is_premium: !!userRecord.is_premium,
             is_admin: userRecord.email.toLowerCase() === 'jsianhung@gmail.com',
             is_banned: !!userRecord.is_banned,
-            purchased_episodes: userRecord.purchased_episodes || []
+            purchased_episodes: userRecord.purchased_episodes || [],
+            youtube_channel_url: userRecord.youtube_channel_url || 'https://www.youtube.com/@superbookmyanmar4188',
+            youtube_channel_name: userRecord.youtube_channel_name || 'Superbook Myanmar'
         };
         this.ownedItems = userRecord.ownedItems || [];
         
@@ -844,6 +881,8 @@ class AppState {
             this.usersDb[recordIndex].is_banned = !!this.user.is_banned;
             this.usersDb[recordIndex].ownedItems = this.ownedItems;
             this.usersDb[recordIndex].purchased_episodes = this.user.purchased_episodes || [];
+            this.usersDb[recordIndex].youtube_channel_url = this.user.youtube_channel_url;
+            this.usersDb[recordIndex].youtube_channel_name = this.user.youtube_channel_name;
             
             this.syncDbToStorage();
         }
@@ -1411,6 +1450,8 @@ function updateActiveTabs(screenId) {
         activeTabId = 'tab-bible-btn';
     } else if (screenId === 'contests') {
         activeTabId = 'tab-quests-btn';
+    } else if (screenId === 'parent' || screenId === 'admin') {
+        activeTabId = 'tab-parent-btn';
     }
 
     if (activeTabId) {
@@ -1748,6 +1789,10 @@ if (questsTab) {
 const watchTab = document.getElementById('tab-watch-btn');
 if (watchTab) {
     watchTab.addEventListener('click', () => navigateTo('dashboard'));
+}
+const parentTab = document.getElementById('tab-parent-btn');
+if (parentTab) {
+    parentTab.addEventListener('click', () => navigateTo('parent'));
 }
 
 // ── Settings Drawer controller ──────────────────────────
@@ -2490,29 +2535,255 @@ function deleteUserAccount(email) {
 
 // --- 5. MASCOT DRESSING & RENDERER ---
 function renderEquippedGear() {
-    const overlay = document.getElementById('equipped-accessory');
-    if (!overlay) return;
+    const overlays = [
+        document.getElementById('equipped-accessory'),
+        document.getElementById('home-equipped-accessory')
+    ].filter(el => el);
+    
+    if (overlays.length === 0) return;
     
     const equipped = state.user.avatar_custom_data.equipped_gear;
-    overlay.className = 'equipped-overlay';
     
-    if (equipped) {
-        const item = state.shopItems.find(i => i.id === equipped);
-        if (item) {
-            overlay.style.backgroundImage = `url('${item.img}')`;
-            overlay.style.display = 'block';
-            overlay.classList.add(`equipped-${equipped}`);
-            return;
+    overlays.forEach(overlay => {
+        overlay.className = 'equipped-overlay';
+        if (equipped) {
+            const item = state.shopItems.find(i => i.id === equipped);
+            if (item) {
+                overlay.style.backgroundImage = `url('${item.img}')`;
+                overlay.style.display = 'block';
+                overlay.classList.add(`equipped-${equipped}`);
+                return;
+            }
         }
+        overlay.style.backgroundImage = '';
+        overlay.style.display = 'none';
+    });
+}
+
+// --- 5B. YOUTUBE DYNAMIC INTEGRATION & CORS RESOLUTION ---
+
+// Helper: Extract username/handle or ID from any YouTube URL
+function extractYoutubeHandleOrId(url) {
+    if (!url) return null;
+    url = url.trim();
+    
+    // Check if it's already a channel ID (UC...)
+    if (/^UC[a-zA-Z0-9_-]{22}$/.test(url)) {
+        return { type: 'id', val: url };
     }
-    overlay.style.backgroundImage = '';
-    overlay.style.display = 'none';
+    
+    // Check if it's a handle (starting with @)
+    if (/^@[a-zA-Z0-9_.-]+$/.test(url)) {
+        return { type: 'handle', val: url };
+    }
+    
+    // Check standard /channel/UC... URLs
+    const channelMatch = url.match(/\/channel\/(UC[a-zA-Z0-9_-]{22})/);
+    if (channelMatch) {
+        return { type: 'id', val: channelMatch[1] };
+    }
+    
+    // Check handles from URL: youtube.com/@handle
+    const handleMatch = url.match(/\/(@[a-zA-Z0-9_.-]+)/);
+    if (handleMatch) {
+        return { type: 'handle', val: handleMatch[1] };
+    }
+    
+    // Check user/c subpaths: youtube.com/user/username or youtube.com/c/username
+    const subpathMatch = url.match(/\/(user|c)\/([a-zA-Z0-9_.-]+)/);
+    if (subpathMatch) {
+        return { type: 'subpath', path: subpathMatch[1], val: subpathMatch[2] };
+    }
+    
+    // Fallback: assume user inputted handle without @
+    if (/^[a-zA-Z0-9_.-]+$/.test(url)) {
+        return { type: 'handle', val: '@' + url };
+    }
+    
+    return null;
+}
+
+// Helper: Resolve a handle or subpath to a UC... Channel ID using AllOrigins proxy
+async function resolveYoutubeChannelId(info) {
+    if (!info) throw new Error("Invalid channel information");
+    if (info.type === 'id') return { id: info.val, name: null };
+    
+    let fetchUrl = '';
+    if (info.type === 'handle') {
+        fetchUrl = `https://www.youtube.com/${info.val}`;
+    } else if (info.type === 'subpath') {
+        fetchUrl = `https://www.youtube.com/${info.path}/${info.val}`;
+    } else {
+        throw new Error("Unsupported channel query format");
+    }
+    
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(fetchUrl)}`;
+    const response = await fetch(proxyUrl);
+    if (!response.ok) throw new Error("Failed to reach proxy server");
+    
+    const data = await response.json();
+    const html = data.contents;
+    if (!html) throw new Error("No contents returned from proxy");
+    
+    // Look for channelId in meta tags or JSON script elements
+    const channelIdMatch = html.match(/itemprop="channelId"\s+content="(UC[a-zA-Z0-9_-]{22})"/i) ||
+                           html.match(/"channelId"\s*:\s*"(UC[a-zA-Z0-9_-]{22})"/i) ||
+                           html.match(/"browseId"\s*:\s*"(UC[a-zA-Z0-9_-]{22})"/i);
+                           
+    if (!channelIdMatch) {
+        throw new Error("Could not find YouTube Channel ID in page source. Please make sure the channel is public.");
+    }
+    
+    // Extract channel name
+    let channelName = null;
+    const nameMatch = html.match(/<meta\s+property="og:title"\s+content="([^"]+)"/i) ||
+                      html.match(/"name"\s*:\s*"([^"]+)"/i);
+    if (nameMatch) {
+        channelName = nameMatch[1];
+    }
+    
+    return { id: channelIdMatch[1], name: channelName };
+}
+
+// Core method: Sync and fetch latest videos from YouTube RSS feed
+async function syncYoutubeChannel(url, updateUI = false) {
+    const statusEl = document.getElementById('admin-yt-status');
+    const syncBtn = document.getElementById('admin-save-yt-btn');
+    
+    if (statusEl && updateUI) {
+        statusEl.textContent = "⏳ Parsing channel URL...";
+        statusEl.style.color = "#00f0ff";
+    }
+    if (syncBtn) syncBtn.disabled = true;
+    
+    try {
+        const info = extractYoutubeHandleOrId(url);
+        if (!info) throw new Error("Invalid YouTube channel link or handle format.");
+        
+        if (statusEl && updateUI && info.type !== 'id') {
+            statusEl.textContent = `⏳ Resolving handle ${info.val} to Channel ID...`;
+        }
+        
+        const resolved = await resolveYoutubeChannelId(info);
+        const channelId = resolved.id;
+        const channelName = resolved.name || "YouTube Feed";
+        
+        if (statusEl && updateUI) {
+            statusEl.textContent = `⏳ Fetching feed for ${channelName}...`;
+        }
+        
+        const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(feedUrl)}`;
+        
+        const response = await fetch(proxyUrl);
+        if (!response.ok) throw new Error("Failed to fetch RSS feed");
+        
+        const data = await response.json();
+        const xmlText = data.contents;
+        if (!xmlText) throw new Error("Empty response from RSS proxy");
+        
+        // Parse RSS XML
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+        
+        // Check for parse error
+        const parseError = xmlDoc.querySelector("parsererror");
+        if (parseError) throw new Error("Failed to parse YouTube RSS feed XML.");
+        
+        const entries = xmlDoc.getElementsByTagName("entry");
+        if (entries.length === 0) {
+            throw new Error("No videos found in the channel feed. Is this channel empty?");
+        }
+        
+        // Map XML entries to state episodes format
+        const newEpisodes = [];
+        for (let i = 0; i < entries.length; i++) {
+            const entry = entries[i];
+            
+            const videoIdNode = entry.getElementsByTagName("yt:videoId")[0] || entry.querySelector("videoId");
+            const videoId = videoIdNode ? videoIdNode.textContent : "";
+            if (!videoId) continue;
+            
+            const titleNode = entry.getElementsByTagName("title")[0];
+            const title = titleNode ? titleNode.textContent : "YouTube Video";
+            
+            const descNode = entry.getElementsByTagName("media:description")[0] || entry.querySelector("description");
+            const description = descNode ? descNode.textContent : "Super Kid Bible Adventures with YouTube video broadcast.";
+            
+            // Limit description size
+            const trimmedDesc = description.length > 150 ? description.substring(0, 147) + "..." : description;
+            
+            // Build high quality thumbnail URL
+            const thumbnail_url = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+            
+            newEpisodes.push({
+                id: `yt-${videoId}`,
+                title: title,
+                youtube_video_id: videoId,
+                thumbnail_url: thumbnail_url,
+                description: trimmedDesc,
+                order_index: i + 1,
+                price: 0 // Free to watch!
+            });
+        }
+        
+        // Update user state properties
+        state.user.youtube_channel_url = url;
+        state.user.youtube_channel_name = channelName;
+        state.saveUser();
+        
+        // Store synced episodes in state & localStorage
+        state.episodes = newEpisodes;
+        state.saveEpisodes();
+        
+        // Re-render
+        renderDashboard();
+        
+        if (statusEl && updateUI) {
+            statusEl.textContent = `🎉 Success! Synced ${newEpisodes.length} videos from "${channelName}".`;
+            statusEl.style.color = "#00ff66";
+            
+            // Clear message after 4s
+            setTimeout(() => {
+                statusEl.textContent = "";
+            }, 4000);
+        }
+        
+        return true;
+    } catch (err) {
+        console.error("YouTube sync error:", err);
+        if (statusEl && updateUI) {
+            statusEl.textContent = `❌ Error: ${err.message}`;
+            statusEl.style.color = "#ff3366";
+        }
+        return false;
+    } finally {
+        if (syncBtn) syncBtn.disabled = false;
+    }
 }
 
 // --- 6. DASHBOARD SCREEN RENDERING ---
 function renderDashboard() {
     const container = document.getElementById('episodes-cards-container');
     if (!container) return;
+    
+    // Update Channel name in title
+    const channelNameTitle = document.getElementById('yt-channel-name-title');
+    if (channelNameTitle) {
+        channelNameTitle.textContent = state.user.youtube_channel_name ? state.user.youtube_channel_name.toUpperCase() : 'EPISODE GUIDE';
+    }
+    
+    const searchInput = document.getElementById('yt-search-input');
+    const searchQuery = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    
+    const clearBtn = document.getElementById('yt-clear-search');
+    if (clearBtn) {
+        if (searchQuery) {
+            clearBtn.classList.remove('hidden');
+        } else {
+            clearBtn.classList.add('hidden');
+        }
+    }
     
     container.innerHTML = '';
     
@@ -2526,23 +2797,47 @@ function renderDashboard() {
         drawerCoinsVal.textContent = state.user.star_coins || 0;
     }
     
-    state.episodes.forEach(episode => {
+    // Filter episodes
+    let filteredEpisodes = state.episodes || [];
+    if (searchQuery) {
+        filteredEpisodes = (state.episodes || []).filter(episode => 
+            (episode.title && episode.title.toLowerCase().includes(searchQuery)) ||
+            (episode.description && episode.description.toLowerCase().includes(searchQuery))
+        );
+    }
+    
+    if (filteredEpisodes.length === 0) {
+        container.innerHTML = `
+            <div class="yt-no-results">
+                <div class="yt-no-results-icon">🔍</div>
+                <div class="yt-no-results-title">No Episodes Found</div>
+                <p>We couldn't find any videos matching "${sanitizeHTML(searchQuery)}". Try searching for something else!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    filteredEpisodes.forEach(episode => {
         const isPremiumUser = !!state.user.is_premium;
         const isPurchased = (state.user.purchased_episodes || []).includes(episode.id);
         const hasPrice = episode.price && parseFloat(episode.price) > 0;
         const isSequentiallyUnlocked = episode.order_index <= state.user.unlocked_index;
+        const isYt = episode.id && episode.id.startsWith('yt-');
 
-        // Playable if premium, already bought, or sequentially unlocked free episode
-        const isPlayable = isPremiumUser || isPurchased || (!hasPrice && isSequentiallyUnlocked);
+        // Playable if premium, already bought, from YouTube, or sequentially unlocked free episode
+        const isPlayable = isPremiumUser || isPurchased || isYt || (!hasPrice && isSequentiallyUnlocked);
         
         const card = document.createElement('div');
         
         if (isPlayable) {
             card.className = `episode-banner-card ${hasPrice && !isSequentiallyUnlocked ? 'premium-purchased' : ''}`;
-            const badgeTag = hasPrice ? `<span class="premium-badge-glowing">⚡ PREMIUM UNLOCKED</span>` : '';
+            const badgeTag = hasPrice 
+                ? `<span class="premium-badge-glowing">⚡ PREMIUM UNLOCKED</span>` 
+                : (isYt ? `<span class="youtube-badge" style="color: #00f0ff; font-weight: 800; text-shadow: 0 0 5px rgba(0,240,255,0.4);">📺 YOUTUBE</span>` : '');
+            
             card.innerHTML = `
                 <div class="episode-card-header">
-                    <span class="episode-number-label">EPISODE ${episode.order_index} ${badgeTag}</span>
+                    <span class="episode-number-label">VIDEO ${episode.order_index} ${badgeTag}</span>
                 </div>
                 <div class="episode-card-content">
                     <h2 class="episode-card-title">${sanitizeHTML(episode.title)}</h2>
@@ -2550,7 +2845,7 @@ function renderDashboard() {
                 </div>
                 <div class="episode-card-thumb-wrap">
                     <img src="${sanitizeHTML(episode.thumbnail_url)}" alt="${sanitizeHTML(episode.title)}" class="episode-card-thumb">
-                    <div class="episode-card-image-label">SUPERBOOK GRN ANIMATION</div>
+                    <div class="episode-card-image-label">SUPERBOOK VIDEO BROADCAST</div>
                 </div>
                 <div class="episode-card-buttons">
                     <button type="button" class="play-btn-trigger">WATCH EPISODE</button>
@@ -3089,7 +3384,21 @@ let episodeQuizQuestions = [];
 
 function startQuiz() {
     // Fetch quizzes linked to this active episode
-    const quizSet = state.quizzes.find(q => q.episode_id === state.activeEpisode.id);
+    let quizSet = state.quizzes.find(q => q.episode_id === state.activeEpisode.id);
+    
+    if (!quizSet || quizSet.questions.length === 0) {
+        // Fallback: Use General Bible / Sunday School Quiz fallback pool
+        const generalPool = typeof GENERAL_QUIZ_QUESTIONS !== 'undefined' ? GENERAL_QUIZ_QUESTIONS : [];
+        if (generalPool.length > 0) {
+            // Shuffle pool and select 3 questions
+            const shuffled = [...generalPool].sort(() => 0.5 - Math.random());
+            quizSet = {
+                episode_id: state.activeEpisode.id,
+                questions: shuffled.slice(0, 3)
+            };
+        }
+    }
+    
     if (!quizSet || quizSet.questions.length === 0) {
         // Fallback: No questions, return to dashboard and unlock next episode
         completeAdventure();
@@ -5939,6 +6248,26 @@ function setupParentAdminPanel() {
             }
         });
     }
+
+    // YouTube Channel Sync Setup
+    const saveYtBtn = document.getElementById('admin-save-yt-btn');
+    if (saveYtBtn) {
+        saveYtBtn.addEventListener('click', async () => {
+            const ytInput = document.getElementById('admin-yt-channel-input');
+            if (ytInput) {
+                const url = ytInput.value.trim();
+                if (url) {
+                    await syncYoutubeChannel(url, true);
+                } else {
+                    const statusEl = document.getElementById('admin-yt-status');
+                    if (statusEl) {
+                        statusEl.textContent = "⚠️ Please enter a channel URL or handle.";
+                        statusEl.style.color = "#ffaa00";
+                    }
+                }
+            }
+        });
+    }
 }
 
 function populateAdminDashboard() {
@@ -5972,6 +6301,12 @@ function populateAdminDashboard() {
     const lvl = state.user.level || 1;
     const estimatedTotalXP = ((lvl - 1) * 100) + (state.user.xp || 0);
     if (totalXP) totalXP.textContent = estimatedTotalXP;
+
+    // Populate YouTube input
+    const ytInput = document.getElementById('admin-yt-channel-input');
+    if (ytInput) {
+        ytInput.value = state.user.youtube_channel_url || '';
+    }
 }
 
 // Override renderAdminView to use the new PIN dashboard
@@ -6013,12 +6348,68 @@ function updateAdminVisibility() {
     }
 }
 
+function setupWatchScreenYTInteractions() {
+    const searchInput = document.getElementById('yt-search-input');
+    const clearBtn = document.getElementById('yt-clear-search');
+    const refreshBtn = document.getElementById('yt-refresh-btn');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            renderDashboard();
+        });
+    }
+    
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            if (searchInput) {
+                searchInput.value = '';
+                renderDashboard();
+                searchInput.focus();
+            }
+        });
+    }
+    
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', async () => {
+            const originalText = refreshBtn.innerHTML;
+            refreshBtn.disabled = true;
+            refreshBtn.innerHTML = `<span class="yt-refresh-icon" style="animation: spin 1s linear infinite; display: inline-block;">🔄</span> Syncing...`;
+            
+            const url = state.user.youtube_channel_url || 'https://www.youtube.com/@superbookmyanmar4188';
+            const success = await syncYoutubeChannel(url, false);
+            
+            refreshBtn.disabled = false;
+            refreshBtn.innerHTML = originalText;
+            
+            if (success) {
+                // Quick success flash feedback
+                const origBg = refreshBtn.style.background;
+                const origColor = refreshBtn.style.color;
+                refreshBtn.style.background = '#00ff66';
+                refreshBtn.style.color = '#000000';
+                setTimeout(() => {
+                    refreshBtn.style.background = origBg;
+                    refreshBtn.style.color = origColor;
+                }, 1000);
+            } else {
+                alert("Could not sync with YouTube channel feed. Please check your internet connection and try again!");
+            }
+        });
+    }
+}
+
 // Run once state and DOM are ready (appended after main DOMContentLoaded block)
 (function initMissionControlAndAdmin() {
     safeInit(init);
     function init() {
         setupMissionControlHome();
         setupParentAdminPanel();
+        setupWatchScreenYTInteractions();
+
+        // Background-sync the YouTube channel feed on load if configured
+        if (state.user.youtube_channel_url) {
+            syncYoutubeChannel(state.user.youtube_channel_url, false);
+        }
 
         // Wire drawer-goto-admin to new panel
         const adminDrawerBtn = document.getElementById('drawer-goto-admin');
@@ -6047,11 +6438,77 @@ function setupHomeV3() {
     updateHomeV3Stats();
     updateHomeV3Verse();
     setupHomeV3QuickLinks();
+    setupHomeV3AvatarToggle();
+}
+
+function setupHomeV3AvatarToggle() {
+    const avatarImg = document.getElementById('home-avatar-img');
+    const avatarContainer = document.getElementById('home-mascot-avatar-container');
+    if (!avatarImg || !avatarContainer) return;
+
+    const defaultAvatars = {
+        'boy': 'assets/avatar_boy.svg',
+        'girl': 'assets/avatar_girl.svg',
+        'mascot': 'assets/mascot.png'
+    };
+    
+    // Load initial avatar choice
+    if (!state.user.avatar_custom_data) {
+        state.user.avatar_custom_data = { equipped_gear: null };
+    }
+    let currentType = state.user.avatar_custom_data.avatar_type || 'boy';
+    avatarImg.src = defaultAvatars[currentType] || 'assets/avatar_boy.svg';
+
+    avatarContainer.style.cursor = 'pointer';
+    
+    // Remove old listeners to avoid duplicates
+    const newAvatarContainer = avatarContainer.cloneNode(true);
+    avatarContainer.parentNode.replaceChild(newAvatarContainer, avatarContainer);
+    
+    newAvatarContainer.addEventListener('click', () => {
+        // Toggle sequence: boy -> girl -> mascot -> boy
+        if (currentType === 'boy') {
+            currentType = 'girl';
+        } else if (currentType === 'girl') {
+            currentType = 'mascot';
+        } else {
+            currentType = 'boy';
+        }
+        
+        state.user.avatar_custom_data.avatar_type = currentType;
+        const newImg = newAvatarContainer.querySelector('#home-avatar-img');
+        if (newImg) newImg.src = defaultAvatars[currentType];
+        
+        // Save state
+        if (typeof state.saveUser === 'function') {
+            state.saveUser();
+        } else {
+            localStorage.setItem('superkid_user', JSON.stringify(state.user));
+        }
+        
+        // Also update the header profile avatar
+        const headerAvatar = document.querySelector('#profile-mascot-container .mascot-img');
+        if (headerAvatar) {
+            headerAvatar.src = defaultAvatars[currentType];
+        }
+
+        // Add pop bubble sound/effect
+        if (typeof triggerBubblePopFX === 'function') {
+            const rect = newAvatarContainer.getBoundingClientRect();
+            triggerBubblePopFX(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        }
+        
+        // Tiny visual bounce
+        gsap.fromTo(newAvatarContainer, 
+            { scale: 0.85 }, 
+            { scale: 1, duration: 0.4, ease: "back.out(1.5)" }
+        );
+    });
 }
 
 function updateHomeV3Greeting() {
     const hour = new Date().getHours();
-    const greeting = hour < 12 ? 'Good Morning! ☀️' : hour < 18 ? 'Good Afternoon! 🌤️' : 'Good Evening! 🌙';
+    const greeting = hour < 12 ? 'Good Morning, ☀️' : hour < 18 ? 'Good Afternoon, 🧑•💻' : 'Good Evening, 🌙';
 
     const label = document.getElementById('home-greeting-label');
     const name = document.getElementById('home-greeting-name');
@@ -6059,9 +6516,9 @@ function updateHomeV3Greeting() {
     const xpBadge = document.getElementById('hv3-xp-count');
 
     if (label) label.textContent = greeting;
-    if (name) name.textContent = state.user.display_name || 'Super Kid';
+    if (name) name.textContent = (state.user.display_name || 'Super Kid') + '!';
     if (streakBadge) streakBadge.textContent = state.streak ? state.streak.daysCount : 1;
-    if (xpBadge) xpBadge.textContent = state.user.star_coins || 0;
+    if (xpBadge) xpBadge.textContent = state.user.level || 5;
 }
 
 function updateHomeV3Stats() {
@@ -6074,26 +6531,29 @@ function updateHomeV3Stats() {
     const xpGoalText = document.getElementById('hv3-xp-goal-text');
     const xpPct = state.user.xp || 0;
     if (xpBar) xpBar.style.width = `${xpPct}%`;
-    if (xpGoalText) xpGoalText.textContent = `LV.${state.user.level || 1} · ${state.user.xp || 0}/100 XP`;
+    if (xpGoalText) xpGoalText.textContent = `${state.user.xp || 50}/100 XP`;
 
     // Bubble stats
     const episodesEl = document.getElementById('hv3-episodes-val');
     const levelEl = document.getElementById('hv3-level-val');
     const streakEl = document.getElementById('hv3-streak-val');
 
-    if (episodesEl) episodesEl.textContent = Math.max(0, (state.user.unlocked_index || 1) - 1);
-    if (levelEl) levelEl.textContent = state.user.level || 1;
-    if (streakEl) streakEl.textContent = state.streak ? state.streak.daysCount : 1;
+    if (episodesEl) episodesEl.textContent = `${Math.max(0, (state.user.unlocked_index || 1) - 1)} EPISODES`;
+    if (levelEl) levelEl.textContent = `${state.user.level || 5} LEVEL`;
+    if (streakEl) streakEl.textContent = `${state.streak ? state.streak.daysCount : 1} STREAK`;
 }
 
 function updateHomeV3Verse() {
     const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
     const verses = typeof DAILY_VERSES !== 'undefined' ? DAILY_VERSES : [
+        { text: 'Trust in the Lord with all your heart and lean not on your own understanding.', ref: 'Proverbs 3:5' },
         { text: 'For God so loved the world that he gave his one and only Son.', ref: 'John 3:16' }
     ];
     const verse = verses[dayOfYear % verses.length];
     const pill = document.getElementById('hv3-verse-pill-text');
-    if (pill) pill.textContent = `"${verse.text.substring(0, 60)}${verse.text.length > 60 ? '…' : ''}" — ${verse.ref}`;
+    if (pill) {
+        pill.innerHTML = `"${verse.text}"<br><span class="hologram-ref">— ${verse.ref}</span>`;
+    }
 }
 
 function setupHomeV3QuickLinks() {
