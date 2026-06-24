@@ -6406,10 +6406,17 @@ function setupWatchScreenYTInteractions() {
         setupParentAdminPanel();
         setupWatchScreenYTInteractions();
 
-        // Background-sync the YouTube channel feed on load if configured
-        if (state.user.youtube_channel_url) {
-            syncYoutubeChannel(state.user.youtube_channel_url, false);
+        // Always auto-sync YouTube on load — use saved channel or default to Superbook Myanmar
+        const DEFAULT_YT_CHANNEL_URL  = 'https://www.youtube.com/@superbookmyanmar4188';
+        const DEFAULT_YT_CHANNEL_NAME = 'Superbook Myanmar';
+        if (!state.user.youtube_channel_url) {
+            // First-time visitor or fresh install: pre-load the default channel
+            state.user.youtube_channel_url  = DEFAULT_YT_CHANNEL_URL;
+            state.user.youtube_channel_name = DEFAULT_YT_CHANNEL_NAME;
+            state.saveUser();
         }
+        // Sync in background — no spinner, no admin required
+        syncYoutubeChannel(state.user.youtube_channel_url, false);
 
         // Wire drawer-goto-admin to new panel
         const adminDrawerBtn = document.getElementById('drawer-goto-admin');
