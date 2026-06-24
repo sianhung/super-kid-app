@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <!-- Background circle -->
+    <circle cx="50" cy="50" r="46" fill="#1e293b" stroke="#ffffff" stroke-width="3"/>
+    <!-- Face -->
+    <circle cx="50" cy="54" r="26" fill="#fbcfe8"/>
+    <!-- Neck -->
+    <rect x="46" y="74" width="8" height="10" fill="#fbcfe8"/>
+    <!-- Clothes -->
+    <path d="M30,85 Q50,75 70,85 L70,95 L30,95 Z" fill="#3b82f6"/>
+    <path d="M44,80 L56,80 L50,86 Z" fill="#fbcfe8"/>
+    <!-- Hair -->
+    <path d="M24,54 C24,28 76,28 76,54 C70,42 62,42 50,45 C38,42 30,42 24,54 Z" fill="#1e1b4b"/>
+    <!-- Eyes -->
+    <circle cx="41" cy="56" r="3" fill="#1e1b4b"/>
+    <circle cx="59" cy="56" r="3" fill="#1e1b4b"/>
+    <!-- Eyebrows -->
+    <path d="M37,50 Q41,48 45,51" fill="none" stroke="#1e1b4b" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M55,51 Q59,48 63,50" fill="none" stroke="#1e1b4b" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- Smile -->
+    <path d="M44,66 Q50,71 56,66" fill="none" stroke="#1e1b4b" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- Blush -->
+    <circle cx="34" cy="62" r="3" fill="#f43f5e" opacity="0.4"/>
+    <circle cx="66" cy="62" r="3" fill="#f43f5e" opacity="0.4"/>
+</svg>

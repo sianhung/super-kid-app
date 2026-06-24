@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Remove BG Tool</title>
+<style>
+  body { background: #222; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 40px; gap: 20px; }
+  canvas { border: 2px solid #555; max-width: 400px; background: repeating-conic-gradient(#444 0% 25%, #333 0% 50%) 0 0 / 20px 20px; }
+  a.btn { padding: 14px 32px; background: #7b5fca; color: #fff; border-radius: 12px; text-decoration: none; font-size: 1.1rem; font-weight: 700; }
+  p { color: #aaa; }
+</style>
+</head>
+<body>
+<h2>🖼️ Black Background Remover</h2>
+<p>Processing mascot.png — black pixels → transparent</p>
+<canvas id="c"></canvas>
+<a class="btn" id="dl" download="mascot.png">⬇ Download mascot.png</a>
+<script>
+const img = new Image();
+// Load via fetch to get around CORS on file://
+fetch('assets/mascot.png')
+  .then(r => r.blob())
+  .then(blob => {
+    img.src = URL.createObjectURL(blob);
+    img.onload = () => {
+      const canvas = document.getElementById('c');
+      canvas.width  = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+
+      const id = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const d  = id.data;
+
+      for (let i = 0; i < d.length; i += 4) {
+        const r = d[i], g = d[i+1], b = d[i+2];
+        // Remove any pixel where all channels are very dark
+        if (r < 40 && g < 40 && b < 40) {
+          d[i+3] = 0; // fully transparent
+        }
+      }
+
+      ctx.putImageData(id, 0, 0);
+
+      // Wire download button
+      document.getElementById('dl').href = canvas.toDataURL('image/png');
+      document.querySelector('p').textContent = '✅ Done! Click Download to save the clean PNG.';
+    };
+  });
+</script>
+</body>
+</html>
